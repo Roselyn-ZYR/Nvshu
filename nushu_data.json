@@ -2,46 +2,37 @@
   {
     "id": "1B170",
     "char": "𡝰",
-    "pinyin": "jié",
-    "meaning_cn": "劫",
-    "meaning_en": "劫 (Eternity/Fate)",
-    "meaning_de": "Kalpa / Schicksal",
-    "description": "源自佛教用语，意为极长的时间或命中注定的灾盟。"
+    "pinyin": "yī",
+    "meaning_cn": "一",
+    "meaning_en": "One",
+    "meaning_de": "Eins",
+    "description": "数词。代表万物之始。"
   },
   {
     "id": "1B171",
     "char": "𡝱",
-    "pinyin": "jiè",
-    "meaning_cn": "借",
-    "meaning_en": "Borrow",
-    "meaning_de": "Borgen / Leihen",
-    "description": "指事物的暂时挪用或相互间的协助。"
+    "pinyin": "èr / rì / rù",
+    "meaning_cn": "两、日、入、二",
+    "meaning_en": "Two / Sun / Enter",
+    "meaning_de": "Zwei / Sonne / Eintreten",
+    "description": "多义字。包含数词‘二’、‘两’，名词‘日’，以及动词‘入’。"
   },
   {
     "id": "1B172",
     "char": "𡝲",
-    "pinyin": "jiě",
-    "meaning_cn": "解",
-    "meaning_en": "Explain / Untie",
-    "meaning_de": "Erklären / Lösen",
-    "description": "意为剖开、解释，或使紧绷的状态松开。"
+    "pinyin": "qī",
+    "meaning_cn": "傺、错、七",
+    "meaning_en": "Stop / Wrong / Seven",
+    "meaning_de": "Stoppen / Falsch / Sieben",
+    "description": "多义字。包含数词‘七’，以及‘傺’（停顿）、‘错’等含义。"
   },
   {
     "id": "1B173",
     "char": "𡝳",
-    "pinyin": "jīn",
-    "meaning_cn": "今",
-    "meaning_en": "Present / Now",
-    "meaning_de": "Gegenwart / Heute",
-    "description": "指代当下的时刻，常用于书信开头描述近况。"
-  },
-  {
-    "id": "1B174",
-    "char": "𡝴",
-    "pinyin": "jīn",
-    "meaning_cn": "金",
-    "meaning_en": "Gold / Metal",
-    "meaning_de": "Gold / Metall",
-    "description": "象征珍贵、永恒，也指代金属材质或财富。"
+    "pinyin": "rén",
+    "meaning_cn": "人",
+    "meaning_en": "Person / Human",
+    "meaning_de": "Mensch",
+    "description": "基本名词，代表人类或个体。"
   }
 ]
