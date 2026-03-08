@@ -35,4 +35,60 @@
     "meaning_de": "Mensch",
     "description": "基本名词，代表人类或个体。"
   }
+  [
+  {
+    "id": "1B174",
+    "char": "𡝴",
+    "pinyin": "bā",
+    "meaning_cn": "八",
+    "meaning_en": "Eight",
+    "meaning_de": "Acht",
+    "description": "数词。代表数字八。"
+  },
+  {
+    "id": "1B175",
+    "char": "𡝵",
+    "pinyin": "shí / shì",
+    "meaning_cn": "十、事、实、侍、拾、莳、是、誓",
+    "meaning_en": "Ten / Matter / Truth / Swear",
+    "meaning_de": "Zehn / Angelegenheit / Wahrheit / Schwören",
+    "description": "多义字。涵盖数词‘十’、抽象名词‘事/实’以及动词‘誓’等。"
+  },
+  {
+    "id": "1B176",
+    "char": "𡝶",
+    "pinyin": "biāo / piào",
+    "meaning_cn": "标、蜂、漂、飘、批、披、喷、片、骗",
+    "meaning_en": "Mark / Bee / Float / Piece / Deceive",
+    "meaning_de": "Markieren / Biene / Treiben / Stück / Täuschen",
+    "description": "多义字。包含自然现象‘飘/漂’以及具体的动词与名词。"
+  },
+  {
+    "id": "1B177",
+    "char": "𡝷",
+    "pinyin": "yǔ / wǔ",
+    "meaning_cn": "约、雨、宇、羽、舞、屋、武",
+    "meaning_en": "About / Rain / Feather / Dance / House",
+    "meaning_de": "Ungefähr / Regen / Feder / Tanz / Haus",
+    "description": "多义字。包含自然天气‘雨’、生活空间‘屋’以及艺术动作‘舞’。"
+  },
+  {
+    "id": "1B178",
+    "char": "𡝸",
+    "pinyin": "shuǐ",
+    "meaning_cn": "水",
+    "meaning_en": "Water",
+    "meaning_de": "Wasser",
+    "description": "基本名词。代表自然界中的水。"
+  },
+  {
+    "id": "1B179",
+    "char": "𡝹",
+    "pinyin": "lǐ / dì",
+    "meaning_cn": "了、礼、弟、帝、吊、调、丫",
+    "meaning_en": "Finish / Rite / Brother / Emperor",
+    "meaning_de": "Beenden / Ritus / Bruder / Kaiser",
+    "description": "多义字。涵盖社会关系‘弟’、礼仪‘礼’以及动词‘了’等。"
+  }
+]
 ]
