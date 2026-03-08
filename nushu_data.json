@@ -16,5 +16,41 @@
     "meaning_en": "Write",
     "meaning_de": "Schreiben",
     "description": "专指书写女书的过程。在纸扇或手帕上落下墨迹。"
+  },
+  {
+    "id": "1B172",
+    "char": "𡝲",
+    "pinyin": "shu",
+    "meaning_cn": "书",
+    "meaning_en": "Book / Document",
+    "meaning_de": "Buch / Dokument",
+    "description": "泛指一切书籍、信件或文字记录。"
+  },
+  {
+    "id": "1B173",
+    "char": "𡝳",
+    "pinyin": "nian",
+    "meaning_cn": "念",
+    "meaning_en": "Recite / Chant",
+    "meaning_de": "Rezitieren",
+    "description": "女书常用于吟诵，此处指带有旋律的诵读。"
+  },
+  {
+    "id": "1B174",
+    "char": "𡝴",
+    "pinyin": "",
+    "meaning_cn": "",
+    "meaning_en": "Pending",
+    "meaning_de": "Ausstehend",
+    "description": "数据录入中..."
+  },
+  {
+    "id": "1B175",
+    "char": "𡝵",
+    "pinyin": "",
+    "meaning_cn": "",
+    "meaning_en": "Pending",
+    "meaning_de": "Ausstehend",
+    "description": "数据录入中..."
   }
 ]
