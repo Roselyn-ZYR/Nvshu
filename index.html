@@ -11,105 +11,123 @@
         }
 
         :root {
-            --bg-color: #0A0A0A; /* 改为深色背景以适配你的 Processing 审美 */
-            --ink-color: #FDFCF8; 
-            --accent-color: #A62C2B;
+            --bg-paper: #F9F5F1;  /* 宣纸感暖白 */
+            --ink-dark: #2C2C2C;  /* 墨黑 */
+            --rouge: #A62C2B;     /* 胭脂红 */
+            --petal: #E8D3D1;     /* 浅粉黛 */
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--ink-color);
+            background-color: var(--bg-paper);
+            color: var(--ink-dark);
             margin: 0;
-            overflow-x: hidden;
             font-family: 'NvshuSerif', serif;
+            transition: background 0.5s;
         }
 
-        /* 艺术化页头 */
+        /* 艺术化页头：去除阴间感 */
         header {
-            height: 40vh;
+            height: 50vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle, #1a1a1a 0%, #0a0a0a 100%);
+            padding-top: 40px;
+        }
+
+        .title-wrapper {
+            position: relative;
+            text-align: center;
         }
 
         h1 {
-            font-size: 80px;
+            font-size: clamp(60px, 8vw, 100px);
             margin: 0;
-            background: linear-gradient(to bottom, #fff, #666);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
-            letter-spacing: 15px;
-            animation: breathe 4s ease-in-out infinite;
+            color: var(--rouge);
+            font-weight: 300;
+            letter-spacing: 20px;
+            /* 模拟印章的凹凸感 */
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+            line-height: 1.2;
         }
 
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
+        .sub-title {
+            font-size: 14px;
+            letter-spacing: 8px;
+            color: #999;
+            margin-top: 20px;
+            text-transform: uppercase;
         }
 
-        /* 识图功能区 */
+        /* 识图区：精致且柔和 */
         .upload-section {
-            padding: 40px;
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(5px);
+            border: 1px dashed var(--petal);
+            border-radius: 40px;
+            margin: 20px auto;
+            max-width: 600px;
+            padding: 30px;
             text-align: center;
-            border-bottom: 1px solid #333;
         }
 
         .upload-btn {
-            border: 1px solid var(--accent-color);
-            padding: 15px 30px;
-            color: var(--accent-color);
+            border: none;
+            background: var(--rouge);
+            padding: 12px 35px;
+            color: white;
+            border-radius: 25px;
             cursor: pointer;
-            transition: all 0.3s;
-            background: transparent;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(166, 44, 43, 0.2);
+            transition: 0.3s;
         }
 
         .upload-btn:hover {
-            background: var(--accent-color);
-            color: white;
+            transform: scale(1.05);
+            background: #8E2C2A;
         }
 
         #p5-container {
             width: 100%;
             display: flex;
             justify-content: center;
-            padding: 40px 0;
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>女书档案馆</h1>
-    <p style="letter-spacing: 5px; color: #888;">NÜSHU DIGITAL ARCHIVE</p>
+    <div class="title-wrapper">
+        <h1>女书</h1>
+        <div style="font-size: 32px; letter-spacing: 12px; color: #555; margin-top:-10px;">数字档案馆</div>
+        <div class="sub-title">— Nüshu Digital Archive —</div>
+    </div>
 </header>
 
 <div class="upload-section">
-    <h3>识图功能 / Image Recognition</h3>
+    <div style="margin-bottom: 15px; font-size: 13px; color: #888;">视觉识别：上传一张包含女书的图片，AI 将为你寻回对应的数字字符</div>
     <input type="file" id="img-upload" hidden accept="image/*">
-    <button class="upload-btn" onclick="document.getElementById('img-upload').click()">上传女书原件图片</button>
-    <div id="preview" style="margin-top: 20px; color: #555;">上传后将通过计算机视觉识别对应字符</div>
+    <button class="upload-btn" onclick="document.getElementById('img-upload').click()">识图寻踪</button>
 </div>
 
 <div id="p5-container"></div>
 
 <script>
-    // P5.js 转换版：Nushu Liquid System
     let myFont;
     let nushuChars = [];
-    let cols = 20; // 网页端减少列数以适配屏幕
-    let rows = 20;
+    let cols = 22; 
+    let rows = 18;
     let baseCode = 0x1B170;
 
     function preload() {
-        // 确保路径正确
         myFont = loadFont('fonts/NyushuSerif-1.000.ttf');
     }
 
     function setup() {
-        let cnv = createCanvas(800, 800);
+        // 画布大小根据窗口动态调整
+        let w = min(windowWidth * 0.9, 1000);
+        let cnv = createCanvas(w, 800);
         cnv.parent('p5-container');
         textFont(myFont);
         textAlign(CENTER, CENTER);
@@ -120,7 +138,7 @@
     }
 
     function draw() {
-        background(10);
+        clear(); // 保持背景透明，使用 CSS 的背景色
         
         let cellSize = width / cols;
         
@@ -129,25 +147,35 @@
                 let tx = x * cellSize + cellSize/2;
                 let ty = y * cellSize + cellSize/2;
                 
-                // 网页端特有的鼠标交互：计算鼠标距离
                 let d = dist(mouseX, mouseY, tx, ty);
-                let offset = map(d, 0, 200, 20, 0, true);
                 
-                // Processing 代码中的 Liquid 模式逻辑
-                let angle = noise(x * 0.15, y * 0.15, frameCount * 0.02) * TWO_PI * 2;
-                tx += cos(angle) * offset;
-                ty += sin(angle) * offset;
+                // 液体波动效果
+                let noiseVal = noise(x * 0.1, y * 0.1, frameCount * 0.01);
+                let offset = map(d, 0, 250, 15, 0, true);
                 
-                let b = map(d, 0, 300, 255, 50, true);
-                fill(b);
-                textSize(cellSize * 0.8);
+                let finalX = tx + cos(noiseVal * TWO_PI) * offset;
+                let finalY = ty + sin(noiseVal * TWO_PI) * offset;
+                
+                // 配色：远距离为淡灰色，鼠标靠近变为胭脂红
+                let r = map(d, 0, 200, 166, 80, true);
+                let g = map(d, 0, 200, 44, 80, true);
+                let b = map(d, 0, 200, 43, 80, true);
+                let alpha = map(d, 0, 300, 255, 40, true);
+                
+                fill(r, g, b, alpha);
+                textSize(cellSize * 0.7);
                 
                 let index = y * cols + x;
                 if (index < nushuChars.length) {
-                    text(nushuChars[index], tx, ty);
+                    text(nushuChars[index], finalX, finalY);
                 }
             }
         }
+    }
+
+    function windowResized() {
+        let w = min(windowWidth * 0.9, 1000);
+        resizeCanvas(w, 800);
     }
 </script>
 
