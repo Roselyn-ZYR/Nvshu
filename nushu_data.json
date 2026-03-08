@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1B170",
+    "char": "𡝰",
+    "pinyin": "du",
+    "meaning_cn": "读",
+    "meaning_en": "Read",
+    "meaning_de": "Lesen",
+    "description": "通常指阅读书信或经书。引申为学习与知识的传递。"
+  },
+  {
+    "id": "1B171",
+    "char": "𡝱",
+    "pinyin": "xie",
+    "meaning_cn": "写",
+    "meaning_en": "Write",
+    "meaning_de": "Schreiben",
+    "description": "专指书写女书的过程。在纸扇或手帕上落下墨迹。"
+  }
+]
