@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>女书数字档案馆 | Nüshu Archive</title>
+    <style>
+        :root {
+            --bg-color: #FDFCF8; /* 宣纸白 */
+            --ink-color: #2C2C2C; /* 墨色 */
+            --seal-color: #A62C2B; /* 印泥红 */
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--ink-color);
+            font-family: serif;
+            margin: 0;
+            padding: 5% 10%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            padding-bottom: 20px;
+        }
+        h1 { font-weight: 300; letter-spacing: 5px; margin-bottom: 10px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1000px;
+        }
+        .char-card {
+            background: white;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.02);
+        }
+        .char-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--seal-color);
+            box-shadow: 0 10px 20px rgba(166, 44, 43, 0.1);
+        }
+        .nushu {
+            font-size: 45px;
+            margin-bottom: 8px;
+            /* 模拟毛笔质感 */
+            filter: drop-shadow(0px 0px 1px var(--ink-color));
+        }
+        .info {
+            font-size: 12px;
+            color: #888;
+            opacity: 0;
+            transition: 0.3s;
+        }
+        .char-card:hover .info {
+            opacity: 1;
+            color: var(--seal-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>女书数字档案馆</h1>
+        <p>396 Characters of Nüshu Heritage · 1.0 Alpha</p>
+    </header>
+
+    <div class="grid" id="main-grid">
+        </div>
+
+    <script>
+        const grid = document.getElementById('main-grid');
+        // 先生成 396 个占位格子
+        for (let i = 1; i <= 396; i++) {
+            const card = document.createElement('div');
+            card.className = 'char-card';
+            card.innerHTML = `
+                <div class="nushu">𡝦</div>
+                <div class="info">字 ${i}</div>
+            `;
+            grid.appendChild(card);
+        }
+    </script>
+</body>
+</html>
