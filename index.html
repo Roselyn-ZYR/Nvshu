@@ -1,99 +1,155 @@
 <!DOCTYPE html>
 <html lang="zh">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Nushu&display=swap" rel="stylesheet">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>女书数字档案馆 | Nüshu Archive</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
-        : root {
-           --bg-color: #FDFCF8; 
-        --ink-color: #2C2C2C; 
-        --seal-color: #A62C2B;
+        @font-face {
+            font-family: 'NvshuSerif';
+            src: url('fonts/NyushuSerif-1.000.ttf') format('truetype');
         }
+
+        :root {
+            --bg-color: #0A0A0A; /* 改为深色背景以适配你的 Processing 审美 */
+            --ink-color: #FDFCF8; 
+            --accent-color: #A62C2B;
+        }
+
         body {
             background-color: var(--bg-color);
-        color: var(--ink-color);
-        /* 优先使用女书字体 */
-        font-family: 'Noto Sans Nushu', serif; 
-        margin: 0;
-        padding: 50px;
+            color: var(--ink-color);
+            margin: 0;
+            overflow-x: hidden;
+            font-family: 'NvshuSerif', serif;
         }
+
+        /* 艺术化页头 */
         header {
-            text-align: center;
-            margin-bottom: 50px;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-            padding-bottom: 20px;
-        }
-        h1 { font-weight: 300; letter-spacing: 5px; margin-bottom: 10px; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 25px;
-            width: 100%;
-            max-width: 1000px;
-        }
-        .char-card {
-            background: white;
-            aspect-ratio: 1;
+            height: 40vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            border: 1px solid rgba(0,0,0,0.05);
-            transition: all 0.4s ease;
+            align-items: center;
+            background: radial-gradient(circle, #1a1a1a 0%, #0a0a0a 100%);
+        }
+
+        h1 {
+            font-size: 80px;
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, #666);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+            letter-spacing: 15px;
+            animation: breathe 4s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        /* 识图功能区 */
+        .upload-section {
+            padding: 40px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .upload-btn {
+            border: 1px solid var(--accent-color);
+            padding: 15px 30px;
+            color: var(--accent-color);
             cursor: pointer;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.02);
+            transition: all 0.3s;
+            background: transparent;
         }
-        .char-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--seal-color);
-            box-shadow: 0 10px 20px rgba(166, 44, 43, 0.1);
+
+        .upload-btn:hover {
+            background: var(--accent-color);
+            color: white;
         }
-        .nushu {
-            font-size: 50px;
-        /* 强制使用女书字体 */
-        font-family: 'Noto Sans Nushu', sans-serif;
-        margin-bottom: 10px;
-        }
-        .info {
-            font-size: 12px;
-            color: #888;
-            opacity: 0;
-            transition: 0.3s;
-        }
-        .char-card:hover .info {
-            opacity: 1;
-            color: var(--seal-color);
+
+        #p5-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 40px 0;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>女书数字档案馆</h1>
-        <p>396 Characters of Nüshu Heritage · 1.0 Alpha</p>
-    </header>
 
-    <div class="grid" id="main-grid">
-        </div>
+<header>
+    <h1>女书档案馆</h1>
+    <p style="letter-spacing: 5px; color: #888;">NÜSHU DIGITAL ARCHIVE</p>
+</header>
 
-    <script>
-        const grid = document.getElementById('main-grid');
-    
-    // 女书在 Unicode 中的起始位置是 0x1B170
-    // 我们循环生成 396 个不同的 Unicode 字符
-    for (let i = 0; i < 396; i++) {
-        const charCode = 0x1B170 + i;
-        const nushuChar = String.fromCodePoint(charCode);
+<div class="upload-section">
+    <h3>识图功能 / Image Recognition</h3>
+    <input type="file" id="img-upload" hidden accept="image/*">
+    <button class="upload-btn" onclick="document.getElementById('img-upload').click()">上传女书原件图片</button>
+    <div id="preview" style="margin-top: 20px; color: #555;">上传后将通过计算机视觉识别对应字符</div>
+</div>
+
+<div id="p5-container"></div>
+
+<script>
+    // P5.js 转换版：Nushu Liquid System
+    let myFont;
+    let nushuChars = [];
+    let cols = 20; // 网页端减少列数以适配屏幕
+    let rows = 20;
+    let baseCode = 0x1B170;
+
+    function preload() {
+        // 确保路径正确
+        myFont = loadFont('fonts/NyushuSerif-1.000.ttf');
+    }
+
+    function setup() {
+        let cnv = createCanvas(800, 800);
+        cnv.parent('p5-container');
+        textFont(myFont);
+        textAlign(CENTER, CENTER);
         
-        const card = document.createElement('div');
-        card.className = 'char-card';
-        card.innerHTML = `
-            <div class="nushu">${nushuChar}</div>
-            <div class="info">U+${charCode.toString(16).toUpperCase()}</div>
-        `;
-        grid.appendChild(card);
+        for (let i = 0; i < 400; i++) {
+            nushuChars.push(String.fromCodePoint(baseCode + i));
         }
-    </script>
+    }
+
+    function draw() {
+        background(10);
+        
+        let cellSize = width / cols;
+        
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                let tx = x * cellSize + cellSize/2;
+                let ty = y * cellSize + cellSize/2;
+                
+                // 网页端特有的鼠标交互：计算鼠标距离
+                let d = dist(mouseX, mouseY, tx, ty);
+                let offset = map(d, 0, 200, 20, 0, true);
+                
+                // Processing 代码中的 Liquid 模式逻辑
+                let angle = noise(x * 0.15, y * 0.15, frameCount * 0.02) * TWO_PI * 2;
+                tx += cos(angle) * offset;
+                ty += sin(angle) * offset;
+                
+                let b = map(d, 0, 300, 255, 50, true);
+                fill(b);
+                textSize(cellSize * 0.8);
+                
+                let index = y * cols + x;
+                if (index < nushuChars.length) {
+                    text(nushuChars[index], tx, ty);
+                }
+            }
+        }
+    }
+</script>
+
 </body>
 </html>
