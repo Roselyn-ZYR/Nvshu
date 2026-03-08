@@ -29,7 +29,7 @@
         }
 
         header {
-            height: 45vh;
+            height: 40vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -37,53 +37,54 @@
             text-align: center;
         }
 
-        /* 标题优化：对应 1B181 (女) 和 1B228 (书) */
+        /* 标题：精准对应 1B181(女) 和 1B228(书) */
         .main-title {
             font-family: 'NvshuSerif', serif !important;
-            font-size: clamp(60px, 10vw, 100px); 
+            font-size: clamp(80px, 12vw, 120px); 
             color: var(--rouge);
             margin: 0;
             line-height: 1.2;
+            filter: drop-shadow(0 5px 15px rgba(176, 58, 56, 0.1));
         }
 
         .sub-title {
             margin-top: 15px;
             letter-spacing: 12px;
             color: #4A4A4A;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 300;
         }
 
         .lang-en {
             display: block;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             letter-spacing: 5px;
             color: #999;
             margin-top: 10px;
             text-transform: uppercase;
         }
 
-        /* 搜索与识别区 */
         .vision-section {
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(10px);
             border: 1px solid var(--petal);
             border-radius: 60px;
             max-width: 500px;
-            margin: 0 auto 60px;
+            margin: 0 auto 50px;
             padding: 30px;
             text-align: center;
         }
 
         #nushu-search {
             width: 85%;
-            padding: 12px 20px;
-            border-radius: 25px;
+            padding: 15px 25px;
+            border-radius: 30px;
             border: 1px solid var(--petal);
             margin-top: 20px;
-            background: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.7);
             outline: none;
             font-size: 14px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.02);
         }
 
         /* 详情交互卡片 */
@@ -94,25 +95,25 @@
             top: 50%;
             transform: translateY(-50%);
             width: 320px;
-            background: rgba(250, 246, 242, 0.95);
-            backdrop-filter: blur(20px);
+            background: rgba(250, 246, 242, 0.98);
+            backdrop-filter: blur(25px);
             border: 1px solid var(--petal);
             padding: 40px;
             border-radius: 40px;
-            box-shadow: 0 30px 60px rgba(176, 58, 56, 0.1);
+            box-shadow: 0 40px 80px rgba(176, 58, 56, 0.15);
             z-index: 1001;
         }
 
-        #detail-char { font-family: 'NvshuSerif'; font-size: 120px; color: var(--rouge); }
-        .detail-label { font-size: 11px; color: #AAA; letter-spacing: 2px; margin-top: 20px; }
-        #detail-meaning { font-size: 26px; color: var(--ink-main); margin: 5px 0; }
+        #detail-char { font-family: 'NvshuSerif'; font-size: 130px; color: var(--rouge); text-align: center; }
+        .detail-label { font-size: 11px; color: #AAA; letter-spacing: 2px; margin-top: 25px; text-transform: uppercase; }
+        #detail-meaning { font-size: 28px; color: var(--ink-main); margin: 8px 0; font-weight: 500; }
 
         footer {
-            margin-top: 200px; 
+            margin-top: 150px; 
             padding: 100px 20px 60px;
             text-align: center;
             font-size: 11px;
-            color: #AAA;
+            color: #BBB;
             letter-spacing: 1px;
             line-height: 2.2;
             border-top: 1px solid rgba(176, 58, 56, 0.05);
@@ -125,60 +126,61 @@
 <body>
 
 <div id="loading">
-    <div style="color:var(--rouge); letter-spacing:4px;">Opening Archive...</div>
+    <div style="color:var(--rouge); letter-spacing:4px; font-weight:300;">ARCHIVE LOADING...</div>
 </div>
 
 <div id="detail-panel">
-    <div onclick="this.parentElement.style.display='none'" style="cursor:pointer; float:right; color:#AAA;">✕</div>
+    <div onclick="this.parentElement.style.display='none'" style="cursor:pointer; float:right; color:#AAA; font-size:20px;">✕</div>
     <div id="detail-char"></div>
-    <div class="detail-label">MEANING / BEDEUTUNG</div>
+    <div class="detail-label">Meanings / 含义</div>
     <div id="detail-meaning"></div>
-    <div id="detail-langs" style="color:#B03A38; font-size:14px; margin-top:5px;"></div>
-    <div class="detail-label">CONTEXT / DESCRIPTION</div>
-    <div id="detail-desc" style="font-size:14px; line-height:1.6; color:#666; text-align:justify; margin-top:10px;"></div>
+    <div id="detail-langs" style="color:#B03A38; font-size:15px; margin-top:5px; font-style: italic;"></div>
+    <div class="detail-label">Archive Notes / 档案注解</div>
+    <div id="detail-desc" style="font-size:14px; line-height:1.7; color:#666; text-align:justify; margin-top:10px;"></div>
 </div>
 
 <header>
     <div class="main-title">&#x1B181;&#x1B228;</div>
-    <div class="sub-title">数字档案馆<span class="lang-en">Digital Archive</span></div>
+    <div class="sub-title">数字档案馆<span class="lang-en">Nüshu Digital Archive</span></div>
 </header>
 
 <div class="vision-section">
-    <div style="font-size:1rem; color:#666; margin-bottom:15px; letter-spacing:4px;">
-        识图寻踪<span class="lang-en" style="font-size:0.65rem;">Image Recognition & Search</span>
+    <div style="font-size:0.9rem; color:#888; letter-spacing:3px;">
+        数字化全集索引 (396 规范字)
     </div>
-    <button class="upload-btn" style="background:linear-gradient(135deg, var(--rouge), #D67A78); color:white; border:none; padding:10px 40px; border-radius:30px; cursor:pointer; letter-spacing:2px;" onclick="alert('Recognition System Active')">UPLOAD IMAGE</button>
-    <br>
-    <input type="text" id="nushu-search" placeholder="在 396 个规范字中搜索含义...">
+    <input type="text" id="nushu-search" placeholder="输入汉字、拼音或英文搜索...">
 </div>
 
 <div id="p5-container"></div>
 
 <footer>
-    Thanks to the support from the<br>
-    <strong>Frauenförderfonds</strong> of Bauhaus-Universität Weimar.
+    Bauhaus-Universität Weimar<br>
+    Media Architecture Special Project<br>
+    Supported by <strong>Frauenförderfonds</strong>
 </footer>
 
 <script>
     let nushuFont, nushuData = [], chars = [];
-    let cols = 26, rows = 16;
+    let cols = 22, rows = 18; // 稍微调整栅格比例，视觉更接近字帖排版
     let searchQuery = "";
 
     function preload() {
         nushuFont = loadFont('fonts/NyushuSerif-1.000.ttf', () => {
             document.getElementById('loading').style.opacity = '0';
-            setTimeout(() => document.getElementById('loading').remove(), 1000);
+            setTimeout(() => document.getElementById('loading').remove(), 800);
         });
         nushuData = loadJSON('nushu_data.json');
     }
 
     function setup() {
-        let w = min(windowWidth * 0.95, 1200);
-        let cnv = createCanvas(w, 850);
+        let w = min(windowWidth * 0.9, 1100);
+        let cnv = createCanvas(w, 900);
         cnv.parent('p5-container');
         if (nushuFont) textFont(nushuFont);
         textAlign(CENTER, CENTER);
-        for (let i = 0; i < 416; i++) {
+        
+        // 生成 396 个规范字序列
+        for (let i = 0; i < 396; i++) {
             chars.push(String.fromCodePoint(0x1B170 + i));
         }
         
@@ -192,64 +194,71 @@
         let cellSizeW = width / cols;
         let cellSizeH = height / rows;
         
-        for (let y = 0; y < rows; y++) {
-            for (let x = 0; x < cols; x++) {
-                let idx = y * cols + x;
-                if (idx >= chars.length) continue;
+        for (let i = 0; i < chars.length; i++) {
+            let x = i % cols;
+            let y = floor(i / cols);
 
-                let tx = x * cellSizeW + cellSizeW/2;
-                let ty = y * cellSizeH + cellSizeH/2;
-                let d = dist(mouseX, mouseY, tx, ty);
-                let hexID = (0x1B170 + idx).toString(16).toUpperCase();
-                
-                // 搜索高亮逻辑
-                let isMatch = false;
-                if (searchQuery.length > 0) {
-                    let entry = Object.values(nushuData).find(item => item.id === hexID);
-                    if (entry && (entry.meaning_cn.includes(searchQuery) || (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)))) {
-                        isMatch = true;
-                    }
+            let tx = x * cellSizeW + cellSizeW/2;
+            let ty = y * cellSizeH + cellSizeH/2;
+            let d = dist(mouseX, mouseY, tx, ty);
+            let hexID = (0x1B170 + i).toString(16).toUpperCase();
+            
+            let isMatch = false;
+            if (searchQuery.length > 0) {
+                let entry = Object.values(nushuData).find(item => item.id === hexID);
+                if (entry && (entry.meaning_cn.includes(searchQuery) || (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)))) {
+                    isMatch = true;
                 }
-
-                let n = noise(x * 0.1, y * 0.1, frameCount * 0.012);
-                let off = map(d, 0, 280, 25, 0, true);
-                
-                if (isMatch) {
-                    fill(255, 0, 0); // 匹配时显示亮红色
-                    textSize(min(cellSizeW, cellSizeH) * 1.1);
-                } else {
-                    fill(176, 58, 56, map(d, 0, 400, 255, 35, true));
-                    textSize(min(cellSizeW, cellSizeH) * 0.85);
-                }
-                
-                text(chars[idx], tx + cos(n * TWO_PI) * off, ty + sin(n * TWO_PI) * off);
             }
+
+            let n = noise(x * 0.1, y * 0.1, frameCount * 0.01);
+            let off = map(d, 0, 250, 20, 0, true);
+            
+            if (isMatch) {
+                fill(176, 58, 56);
+                textSize(cellSizeW * 1.1);
+                stroke(176, 58, 56, 50);
+                strokeWeight(1);
+            } else {
+                noStroke();
+                fill(176, 58, 56, map(d, 0, 350, 255, 40, true));
+                textSize(cellSizeW * 0.8);
+            }
+            
+            text(chars[i], tx + cos(n * TWO_PI) * off, ty + sin(n * TWO_PI) * off);
         }
     }
 
     function mousePressed() {
         let cellSizeW = width / cols;
         let cellSizeH = height / rows;
-        let x = floor(mouseX / cellSizeW);
-        let y = floor(mouseY / cellSizeH);
-        let idx = y * cols + x;
-        if (idx >= 0 && idx < 416 && mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
-            let hexID = (0x1B170 + idx).toString(16).toUpperCase();
-            showDetail(hexID, chars[idx]);
+        
+        // 精确点击判定
+        for (let i = 0; i < chars.length; i++) {
+            let x = i % cols;
+            let y = floor(i / cols);
+            let tx = x * cellSizeW + cellSizeW/2;
+            let ty = y * cellSizeH + cellSizeH/2;
+            
+            if (dist(mouseX, mouseY, tx, ty) < cellSizeW/2) {
+                let hexID = (0x1B170 + i).toString(16).toUpperCase();
+                showDetail(hexID, chars[i]);
+                break;
+            }
         }
     }
 
     function showDetail(id, char) {
         let entry = Object.values(nushuData).find(item => item.id === id);
         document.getElementById('detail-char').innerText = char;
-        document.getElementById('detail-meaning').innerText = entry ? entry.meaning_cn : "待校对";
+        document.getElementById('detail-meaning').innerText = entry ? entry.meaning_cn : "待整理";
         document.getElementById('detail-langs').innerText = entry ? `${entry.meaning_en} / ${entry.meaning_de}` : "U+" + id;
-        document.getElementById('detail-desc').innerText = entry ? entry.description : "正根据《女书规范字书法字帖》录入释义。";
+        document.getElementById('detail-desc').innerText = entry ? entry.description : "正根据《女书规范字书法字帖》进行校对录入。";
         document.getElementById('detail-panel').style.display = 'block';
     }
 
     function windowResized() {
-        resizeCanvas(min(windowWidth * 0.95, 1200), 850);
+        resizeCanvas(min(windowWidth * 0.9, 1100), 900);
     }
 </script>
 </body>
