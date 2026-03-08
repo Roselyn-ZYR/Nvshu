@@ -23,7 +23,7 @@
             background-color: var(--bg-paper);
             color: var(--ink-main);
             margin: 0;
-            font-family: 'PingFang SC', 'Helvetica Neue', sans-serif;
+            font-family: 'PingFang SC', 'STHeiti', sans-serif;
             overflow-x: hidden;
             background-image: radial-gradient(circle at 50% 20%, rgba(176, 58, 56, 0.02) 0%, transparent 70%);
         }
@@ -38,105 +38,95 @@
             padding: 0 20px;
         }
 
+        /* 修正：标题字号比例更平衡，使用 Unicode 转义 */
         .main-title {
             font-family: 'NvshuSerif', serif !important;
-            font-size: clamp(60px, 10vw, 110px); 
+            font-size: clamp(60px, 10vw, 100px); 
             color: var(--rouge);
             margin: 0;
             line-height: 1.2;
+            filter: drop-shadow(0 4px 10px rgba(176, 58, 56, 0.1));
         }
 
         .sub-title {
             margin-top: 15px;
-            letter-spacing: 10px;
+            letter-spacing: 12px;
             color: #4A4A4A;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: 300;
         }
 
         .lang-en {
             display: block;
             font-size: 0.75rem;
-            letter-spacing: 4px;
+            letter-spacing: 5px;
             color: #999;
-            margin-top: 8px;
+            margin-top: 10px;
             text-transform: uppercase;
         }
 
-        /* 交互式详情卡片 */
-        #detail-card {
+        /* 详情交互卡片 */
+        #detail-panel {
             display: none;
             position: fixed;
             right: 40px;
             top: 50%;
             transform: translateY(-50%);
-            width: 300px;
-            background: rgba(255, 255, 255, 0.9);
+            width: 320px;
+            background: rgba(250, 246, 242, 0.95);
             backdrop-filter: blur(20px);
             border: 1px solid var(--petal);
             padding: 40px;
             border-radius: 40px;
             box-shadow: 0 30px 60px rgba(176, 58, 56, 0.1);
             z-index: 1001;
-            transition: all 0.5s ease;
         }
 
-        #detail-char { font-family: 'NvshuSerif'; font-size: 100px; color: var(--rouge); margin-bottom: 15px; }
-        .detail-label { font-size: 12px; color: #AAA; letter-spacing: 2px; margin-top: 15px; }
-        #detail-meaning { font-size: 22px; margin: 5px 0; color: var(--ink-main); }
+        #detail-char { font-family: 'NvshuSerif'; font-size: 120px; color: var(--rouge); }
+        .detail-label { font-size: 11px; color: #AAA; letter-spacing: 2px; margin-top: 20px; }
+        #detail-meaning { font-size: 26px; color: var(--ink-main); margin: 5px 0; }
 
-        /* 识图功能区 */
         .vision-section {
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(10px);
             border: 1px solid var(--petal);
             border-radius: 60px;
-            max-width: 520px;
+            max-width: 500px;
             margin: 0 auto 100px;
             padding: 30px;
             text-align: center;
         }
 
-        .upload-btn {
-            background: linear-gradient(135deg, var(--rouge), #D67A78);
-            color: white;
-            border: none;
-            padding: 12px 45px;
-            border-radius: 35px;
-            cursor: pointer;
-            font-size: 13px;
-            letter-spacing: 2px;
-            transition: 0.3s;
-        }
-
+        /* 留白过渡：致谢部分 */
         footer {
-            margin-top: 200px;
-            padding: 80px 20px;
+            margin-top: 180px; 
+            padding: 100px 20px 60px;
             text-align: center;
             font-size: 11px;
             color: #AAA;
             letter-spacing: 1px;
-            line-height: 2;
+            line-height: 2.2;
+            border-top: 1px solid rgba(176, 58, 56, 0.05);
         }
 
         #p5-container { width: 100%; display: flex; justify-content: center; cursor: crosshair; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-paper); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-paper); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 1s; }
     </style>
 </head>
 <body>
 
 <div id="loading">
-    <div style="color:var(--rouge); letter-spacing:4px;">Opening Archive...</div>
+    <div style="color:var(--rouge); letter-spacing:4px;">Opening Nüshu Archive...</div>
 </div>
 
-<div id="detail-card">
+<div id="detail-panel">
     <div onclick="this.parentElement.style.display='none'" style="cursor:pointer; float:right; color:#AAA;">✕</div>
     <div id="detail-char"></div>
     <div class="detail-label">MEANING / BEDEUTUNG</div>
     <div id="detail-meaning"></div>
-    <div id="detail-lang" style="color:#B03A38; font-size:14px; margin-bottom:15px;"></div>
-    <div class="detail-label">USAGE / GEBRAUCH</div>
-    <div id="detail-desc" style="font-size:14px; line-height:1.6; color:#666; text-align:justify;"></div>
+    <div id="detail-langs" style="color:#B03A38; font-size:14px; margin-top:5px;"></div>
+    <div class="detail-label">CONTEXT / DESCRIPTION</div>
+    <div id="detail-desc" style="font-size:14px; line-height:1.6; color:#666; text-align:justify; margin-top:10px;"></div>
 </div>
 
 <header>
@@ -145,10 +135,10 @@
 </header>
 
 <div class="vision-section">
-    <div style="font-size:1rem; color:#666; margin-bottom:20px; letter-spacing:3px;">
+    <div style="font-size:1rem; color:#666; margin-bottom:20px; letter-spacing:4px;">
         识图寻踪<span class="lang-en" style="font-size:0.65rem;">Image Recognition</span>
     </div>
-    <button class="upload-btn" onclick="alert('Digital Vision System Initializing...')">UPLOAD IMAGE</button>
+    <button class="upload-btn" style="background:linear-gradient(135deg, var(--rouge), #D67A78); color:white; border:none; padding:12px 45px; border-radius:35px; cursor:pointer; letter-spacing:2px;" onclick="alert('Digital Vision System Initializing...')">UPLOAD IMAGE</button>
 </div>
 
 <div id="p5-container"></div>
@@ -168,9 +158,8 @@
     function preload() {
         nushuFont = loadFont('fonts/NyushuSerif-1.000.ttf', () => {
             document.getElementById('loading').style.opacity = '0';
-            setTimeout(() => document.getElementById('loading').remove(), 800);
+            setTimeout(() => document.getElementById('loading').remove(), 1000);
         });
-        // 自动读取 JSON 数据库
         nushuData = loadJSON('nushu_data.json');
     }
 
@@ -197,7 +186,7 @@
                 let n = noise(x * 0.1, y * 0.1, frameCount * 0.012);
                 let off = map(d, 0, 280, 25, 0, true);
                 fill(176, 58, 56, map(d, 0, 400, 255, 35, true));
-                textSize(min(cellSizeW, cellSizeH) * 0.85);
+                textSize(min(cellSizeW, cellSizeH) * 0.85); // 调大字符显示
                 let idx = y * cols + x;
                 if (idx < chars.length) text(chars[idx], tx + cos(n * TWO_PI) * off, ty + sin(n * TWO_PI) * off);
             }
@@ -210,7 +199,6 @@
         let x = floor(mouseX / cellSizeW);
         let y = floor(mouseY / cellSizeH);
         let idx = y * cols + x;
-
         if (idx >= 0 && idx < 416 && mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
             let hexID = (0x1B170 + idx).toString(16).toUpperCase();
             showDetail(hexID, chars[idx]);
@@ -220,10 +208,10 @@
     function showDetail(id, char) {
         let entry = Object.values(nushuData).find(item => item.id === id);
         document.getElementById('detail-char').innerText = char;
-        document.getElementById('detail-meaning').innerText = entry ? entry.meaning_cn : "正在校对 / Pending";
-        document.getElementById('detail-lang').innerText = entry ? `${entry.meaning_en} / ${entry.meaning_de}` : "U+" + id;
-        document.getElementById('detail-desc').innerText = entry ? entry.description : "根据赵丽明《女书规范字书法字帖》正在同步数字化资料。";
-        document.getElementById('detail-card').style.display = 'block';
+        document.getElementById('detail-meaning').innerText = entry ? entry.meaning_cn : "待整理";
+        document.getElementById('detail-langs').innerText = entry ? `${entry.meaning_en} / ${entry.meaning_de}` : "U+" + id;
+        document.getElementById('detail-desc').innerText = entry ? entry.description : "正根据《女书规范字书法字帖》录入释义中。";
+        document.getElementById('detail-panel').style.display = 'block';
     }
 
     function windowResized() {
