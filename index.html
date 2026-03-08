@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>女书数字档案馆 | Nüshu Archive</title>
+    <title>女书数字档案馆 | Nüshu Digital Archive</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
-        /* 1. 字体注册：已同步为你修改后的 fonts 文件夹 */
         @font-face {
             font-family: 'NvshuSerif';
             src: url('fonts/NyushuSerif-1.000.ttf') format('truetype');
@@ -14,75 +13,73 @@
         }
 
         :root {
-            --bg-paper: #FAF6F2;  /* 宣纸暖白 */
-            --ink-main: #2C2C2C;  /* 墨色 */
-            --rouge: #B03A38;     /* 胭脂红 */
-            --petal: #E8D3D1;     /* 浅粉 */
+            --bg-paper: #FAF6F2;
+            --ink-main: #2C2C2C;
+            --rouge: #B03A38;
+            --petal: #F2E3E1;
         }
 
         body {
             background-color: var(--bg-paper);
             color: var(--ink-main);
             margin: 0;
-            font-family: 'PingFang SC', 'STHeiti', 'Microsoft YaHei', sans-serif;
+            font-family: 'PingFang SC', 'STHeiti', sans-serif;
             overflow-x: hidden;
-            background-image: radial-gradient(circle at 50% 20%, rgba(176, 58, 56, 0.02) 0%, transparent 80%);
+            background-image: radial-gradient(circle at 50% 20%, rgba(176, 58, 56, 0.02) 0%, transparent 70%);
         }
 
-        /* 艺术化页头 */
         header {
-            height: 42vh;
+            height: 45vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
+            padding: 0 20px;
         }
 
+        /* 优化：缩小标题字号，增加优雅感 */
         .main-title {
-            /* 强制对标题使用女书字体 */
             font-family: 'NvshuSerif', serif !important;
-            font-size: clamp(90px, 16vw, 180px);
+            font-size: clamp(60px, 10vw, 110px); 
             color: var(--rouge);
             margin: 0;
-            line-height: 1.1;
-            filter: drop-shadow(0 4px 10px rgba(176, 58, 56, 0.12));
+            line-height: 1.2;
         }
 
         .sub-title {
-            margin-top: 20px;
-            letter-spacing: 12px;
+            margin-top: 15px;
+            letter-spacing: 10px;
             color: #4A4A4A;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 300;
-            text-indent: 12px; /* 修正居中偏移 */
         }
 
-        /* 识图功能区 */
+        .lang-en {
+            display: block;
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            color: #999;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+
+        /* 识图区 UI */
         .vision-section {
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(10px);
             border: 1px solid var(--petal);
             border-radius: 60px;
-            max-width: 480px;
-            margin: 0 auto 60px;
-            padding: 35px;
+            max-width: 520px;
+            margin: 0 auto 80px; /* 增加下方间距 */
+            padding: 30px;
             text-align: center;
-            box-shadow: 0 15px 35px rgba(232, 211, 209, 0.2);
         }
 
         .vision-title {
-            font-size: 1.1rem;
-            color: #777;
-            margin-bottom: 25px;
-            letter-spacing: 4px;
-        }
-
-        .vision-en {
-            display: block;
-            font-size: 0.75rem;
-            opacity: 0.6;
-            margin-top: 8px;
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 20px;
             letter-spacing: 3px;
         }
 
@@ -90,28 +87,24 @@
             background: linear-gradient(135deg, var(--rouge), #D67A78);
             color: white;
             border: none;
-            padding: 14px 50px;
+            padding: 12px 45px;
             border-radius: 35px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             letter-spacing: 2px;
-            transition: 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: 0.3s;
         }
 
-        .upload-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(176, 58, 56, 0.25);
-        }
-
-        /* 页面底部致谢 */
+        /* 页面底部：增加大量留白过渡 */
         footer {
-            padding: 100px 20px 60px;
+            margin-top: 150px; /* 矩阵下方的巨大留白 */
+            padding: 60px 20px;
             text-align: center;
             font-size: 11px;
             color: #AAA;
             letter-spacing: 1px;
-            line-height: 1.8;
-            font-family: sans-serif;
+            line-height: 2;
+            border-top: 1px solid rgba(176, 58, 56, 0.05);
         }
 
         #p5-container {
@@ -124,28 +117,31 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-paper);
             display: flex; justify-content: center; align-items: center;
-            z-index: 9999; transition: opacity 1s;
+            z-index: 9999;
         }
     </style>
 </head>
 <body>
 
 <div id="loading">
-    <div style="color:var(--rouge); letter-spacing:4px; font-size:13px;">正在开启女书档案馆...</div>
+    <div style="color:var(--rouge); letter-spacing:4px;">Loading Archive...</div>
 </div>
 
 <header>
     <div class="main-title">&#x1B18C;&#x1B1B9;</div>
-    <div class="sub-title">数字档案馆</div>
+    <div class="sub-title">
+        数字档案馆
+        <span class="lang-en">Digital Archive</span>
+    </div>
 </header>
 
 <div class="vision-section">
     <div class="vision-title">
         识图寻踪
-        <span class="vision-en">IMAGE RECOGNITION</span>
+        <span class="lang-en" style="font-size: 0.65rem;">Image Recognition</span>
     </div>
     <input type="file" id="img-input" hidden accept="image/*">
-    <button class="upload-btn" onclick="document.getElementById('img-input').click()">上传文件</button>
+    <button class="upload-btn" onclick="document.getElementById('img-input').click()">UPLOAD IMAGE</button>
 </div>
 
 <div id="p5-container"></div>
@@ -158,52 +154,55 @@
 <script>
     let nushuFont;
     let chars = [];
-    let cols = 22; 
-    let rows = 18;
+    // 增加列数和行数，并调大字号
+    let cols = 26; 
+    let rows = 16;
 
     function preload() {
         nushuFont = loadFont('fonts/NyushuSerif-1.000.ttf', () => {
             document.getElementById('loading').style.opacity = '0';
-            setTimeout(() => document.getElementById('loading').remove(), 1000);
+            setTimeout(() => document.getElementById('loading').remove(), 800);
         });
     }
 
     function setup() {
-        let w = min(windowWidth * 0.95, 1100);
-        let cnv = createCanvas(w, 750);
+        let w = min(windowWidth * 0.95, 1200);
+        let cnv = createCanvas(w, 850); // 增加高度
         cnv.parent('p5-container');
         if (nushuFont) textFont(nushuFont);
         textAlign(CENTER, CENTER);
         
-        for (let i = 0; i < 400; i++) {
+        for (let i = 0; i < 416; i++) { // 26*16 = 416, 涵盖 396 个字
             chars.push(String.fromCodePoint(0x1B170 + i));
         }
     }
 
     function draw() {
         clear();
-        let cellSize = width / cols;
-        let limit = 260;
+        let cellSizeW = width / cols;
+        let cellSizeH = height / rows;
+        let limit = 280;
 
         for (let y = 0; y < rows; y++) {
             for (let x = 0; x < cols; x++) {
-                let tx = x * cellSize + cellSize/2;
-                let ty = y * cellSize + cellSize/2;
+                let tx = x * cellSizeW + cellSizeW/2;
+                let ty = y * cellSizeH + cellSizeH/2;
                 
                 let d = dist(mouseX, mouseY, tx, ty);
-                let n = noise(x * 0.12, y * 0.12, frameCount * 0.012);
-                let off = map(d, 0, limit, 20, 0, true);
+                let n = noise(x * 0.1, y * 0.1, frameCount * 0.012);
+                let off = map(d, 0, limit, 25, 0, true);
                 
                 let fx = tx + cos(n * TWO_PI) * off;
                 let fy = ty + sin(n * TWO_PI) * off;
                 
-                let r = map(d, 0, limit, 176, 120, true);
-                let g = map(d, 0, limit, 58, 120, true);
-                let b = map(d, 0, limit, 56, 120, true);
-                let a = map(d, 0, 400, 255, 40, true);
+                let r = map(d, 0, limit, 176, 140, true);
+                let g = map(d, 0, limit, 58, 140, true);
+                let b = map(d, 0, limit, 56, 140, true);
+                let a = map(d, 0, 400, 255, 35, true);
                 
                 fill(r, g, b, a);
-                textSize(cellSize * 0.75);
+                // 调大矩阵中的字号
+                textSize(min(cellSizeW, cellSizeH) * 0.85);
                 
                 let idx = y * cols + x;
                 if (idx < chars.length) text(chars[idx], fx, fy);
@@ -212,8 +211,8 @@
     }
 
     function windowResized() {
-        let w = min(windowWidth * 0.95, 1100);
-        resizeCanvas(w, 750);
+        let w = min(windowWidth * 0.95, 1200);
+        resizeCanvas(w, 850);
     }
 </script>
 
