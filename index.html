@@ -1,24 +1,23 @@
 <!DOCTYPE html>
 <html lang="zh">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Nushu&display=swap" rel="stylesheet">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>女书数字档案馆 | Nüshu Archive</title>
     <style>
-        :root {
-            --bg-color: #FDFCF8; /* 宣纸白 */
-            --ink-color: #2C2C2C; /* 墨色 */
-            --seal-color: #A62C2B; /* 印泥红 */
+        : root {
+           --bg-color: #FDFCF8; 
+        --ink-color: #2C2C2C; 
+        --seal-color: #A62C2B;
         }
         body {
             background-color: var(--bg-color);
-            color: var(--ink-color);
-            font-family: serif;
-            margin: 0;
-            padding: 5% 10%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        color: var(--ink-color);
+        /* 优先使用女书字体 */
+        font-family: 'Noto Sans Nushu', serif; 
+        margin: 0;
+        padding: 50px;
         }
         header {
             text-align: center;
@@ -52,10 +51,10 @@
             box-shadow: 0 10px 20px rgba(166, 44, 43, 0.1);
         }
         .nushu {
-            font-size: 45px;
-            margin-bottom: 8px;
-            /* 模拟毛笔质感 */
-            filter: drop-shadow(0px 0px 1px var(--ink-color));
+            font-size: 50px;
+        /* 强制使用女书字体 */
+        font-family: 'Noto Sans Nushu', sans-serif;
+        margin-bottom: 10px;
         }
         .info {
             font-size: 12px;
@@ -80,15 +79,20 @@
 
     <script>
         const grid = document.getElementById('main-grid');
-        // 先生成 396 个占位格子
-        for (let i = 1; i <= 396; i++) {
-            const card = document.createElement('div');
-            card.className = 'char-card';
-            card.innerHTML = `
-                <div class="nushu">𡝦</div>
-                <div class="info">字 ${i}</div>
-            `;
-            grid.appendChild(card);
+    
+    // 女书在 Unicode 中的起始位置是 0x1B170
+    // 我们循环生成 396 个不同的 Unicode 字符
+    for (let i = 0; i < 396; i++) {
+        const charCode = 0x1B170 + i;
+        const nushuChar = String.fromCodePoint(charCode);
+        
+        const card = document.createElement('div');
+        card.className = 'char-card';
+        card.innerHTML = `
+            <div class="nushu">${nushuChar}</div>
+            <div class="info">U+${charCode.toString(16).toUpperCase()}</div>
+        `;
+        grid.appendChild(card);
         }
     </script>
 </body>
