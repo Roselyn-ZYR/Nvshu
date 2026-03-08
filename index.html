@@ -6,35 +6,228 @@
     <title>女书数字档案馆 | Nüshu Archive</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
+        /* 1. 字体注册：适配你目前的 fond 文件夹 */
         @font-face {
             font-family: 'NvshuSerif';
-            src: url('fonts/NyushuSerif-1.000.ttf') format('truetype');
+            src: url('fond/NyushuSerif-1.000.ttf') format('truetype');
             font-display: swap;
         }
 
         :root {
-            --bg-paper: #FAF6F2;  /* 柔和宣纸色 */
-            --ink-main: #333333;  /* 暖墨色 */
+            --bg-paper: #FAF6F2;  /* 宣纸感暖白 */
+            --ink-main: #2C2C2C;  /* 暖墨黑 */
             --rouge: #B03A38;     /* 胭脂红 */
-            --petal: #F2E3E1;     /* 浅粉 */
+            --petal: #E8D3D1;     /* 浅粉黛 */
         }
 
         body {
             background-color: var(--bg-paper);
             color: var(--ink-main);
             margin: 0;
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            /* 基础字体使用系统字体，确保中文清晰 */
+            font-family: 'PingFang SC', 'STHeiti', sans-serif;
             overflow-x: hidden;
-            background-image: radial-gradient(circle at 50% 20%, rgba(176, 58, 56, 0.03) 0%, transparent 70%);
+            background-image: radial-gradient(circle at 50% 20%, rgba(176, 58, 56, 0.02) 0%, transparent 80%);
         }
 
         /* 艺术化页头 */
         header {
-            height: 40vh;
+            height: 42vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            text-align: center;
+        }
+
+        .main-title {
+            /* 强制对标题使用女书字体库 */
+            font-family: 'NvshuSerif', serif !important;
+            font-size: clamp(90px, 16vw, 180px);
+            color: var(--rouge);
+            margin: 0;
+            line-height: 1;
+            filter: drop-shadow(0 4px 10px rgba(176, 58, 56, 0.12));
+            animation: inkFlow 2.5s ease-out;
+        }
+
+        @keyframes inkFlow {
+            from { opacity: 0; filter: blur(10px); }
+            to { opacity: 1; filter: blur(0); }
+        }
+
+        .sub-title {
+            margin-top: 20px;
+            letter-spacing: 12px;
+            color: #4A4A4A;
+            font-size: 1.5rem;
+            font-weight: 300;
+            text-indent: 12px; /* 修正字间距导致的居中偏差 */
+        }
+
+        /* 识图区 UI */
+        .vision-section {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--petal);
+            border-radius: 60px;
+            max-width: 480px;
+            margin: 0 auto 60px;
+            padding: 35px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(232, 211, 209, 0.2);
+        }
+
+        .vision-title {
+            font-size: 1rem;
+            color: #777;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+        }
+
+        .vision-en {
+            display: block;
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-top: 6px;
+            letter-spacing: 3px;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, var(--rouge), #D67A78);
+            color: white;
+            border: none;
+            padding: 14px 50px;
+            border-radius: 35px;
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 2px;
+            transition: 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(176, 58, 56, 0.25);
+        }
+
+        /* 底部致谢 */
+        footer {
+            padding: 80px 20px 40px;
+            text-align: center;
+            font-size: 11px;
+            color: #AAA;
+            letter-spacing: 1px;
+            line-height: 1.8;
+        }
+
+        #p5-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 加载过渡 */
+        #loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-paper);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 1s;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loading">
+    <div style="color:var(--rouge); letter-spacing:4px; font-size:13px;">正在铺展女书长轴...</div>
+</div>
+
+<header>
+    <div class="main-title">&#x1B18C;&#x1B1B9;</div>
+    <div class="sub-title">数字档案馆</div>
+</header>
+
+<div class="vision-section">
+    <div class="vision-title">
+        识图寻踪
+        <span class="vision-en">IMAGE RECOGNITION</span>
+    </div>
+    <input type="file" id="img-input" hidden accept="image/*">
+    <button class="upload-btn" onclick="document.getElementById('img-input').click()">上传文件</button>
+</div>
+
+<div id="p5-container"></div>
+
+<footer>
+    Thanks to the support from<br>
+    Frauenförderfonds of Bauhaus-Universität Weimar.
+</footer>
+
+<script>
+    let nushuFont;
+    let chars = [];
+    let cols = 22; 
+    let rows = 18;
+
+    function preload() {
+        // 加载字体
+        nushuFont = loadFont('fond/NyushuSerif-1.000.ttf', () => {
+            document.getElementById('loading').style.opacity = '0';
+            setTimeout(() => document.getElementById('loading').remove(), 1000);
+        });
+    }
+
+    function setup() {
+        let w = min(windowWidth * 0.95, 1100);
+        let cnv = createCanvas(w, 750);
+        cnv.parent('p5-container');
+        if (nushuFont) textFont(nushuFont);
+        textAlign(CENTER, CENTER);
+        
+        for (let i = 0; i < 400; i++) {
+            chars.push(String.fromCodePoint(0x1B170 + i));
+        }
+    }
+
+    function draw() {
+        clear();
+        let cellSize = width / cols;
+        let limit = 260;
+
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                let tx = x * cellSize + cellSize/2;
+                let ty = y * cellSize + cellSize/2;
+                
+                let d = dist(mouseX, mouseY, tx, ty);
+                let n = noise(x * 0.12, y * 0.12, frameCount * 0.012);
+                let off = map(d, 0, limit, 20, 0, true);
+                
+                let fx = tx + cos(n * TWO_PI) * off;
+                let fy = ty + sin(n * TWO_PI) * off;
+                
+                // 女性化变色逻辑：胭脂红随鼠标波动
+                let r = map(d, 0, limit, 176, 120, true);
+                let g = map(d, 0, limit, 58, 120, true);
+                let b = map(d, 0, limit, 56, 120, true);
+                let a = map(d, 0, 400, 255, 30, true);
+                
+                fill(r, g, b, a);
+                textSize(cellSize * 0.75);
+                
+                let idx = y * cols + x;
+                if (idx < chars.length) text(chars[idx], fx, fy);
+            }
+        }
+    }
+
+    function windowResized() {
+        let w = min(windowWidth * 0.95, 1100);
+        resizeCanvas(w, 750);
+    }
+</script>
+
+</body>
+</html>            align-items: center;
             text-align: center;
         }
 
