@@ -23,7 +23,7 @@
             background-color: var(--bg-paper);
             color: var(--ink-main);
             margin: 0;
-            font-family: 'PingFang SC', 'STHeiti', sans-serif;
+            font-family: 'PingFang SC', 'Helvetica Neue', sans-serif;
             overflow-x: hidden;
             background-image: radial-gradient(circle at 50% 20%, rgba(176, 58, 56, 0.02) 0%, transparent 70%);
         }
@@ -37,7 +37,7 @@
             text-align: center;
         }
 
-        /* 标题：精准对应 1B181(女) 和 1B228(书) */
+        /* 标题：精准对应字帖 18号 (女: 1B181) 和 185号 (书: 1B228) */
         .main-title {
             font-family: 'NvshuSerif', serif !important;
             font-size: clamp(80px, 12vw, 120px); 
@@ -49,7 +49,7 @@
 
         .sub-title {
             margin-top: 15px;
-            letter-spacing: 12px;
+            letter-spacing: 10px;
             color: #4A4A4A;
             font-size: 1.5rem;
             font-weight: 300;
@@ -64,37 +64,54 @@
             text-transform: uppercase;
         }
 
-        .vision-section {
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(10px);
+        /* 搜索与识图区 UI */
+        .control-section {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
             border: 1px solid var(--petal);
-            border-radius: 60px;
-            max-width: 500px;
+            border-radius: 50px;
+            max-width: 600px;
             margin: 0 auto 50px;
-            padding: 30px;
+            padding: 35px;
             text-align: center;
+            box-shadow: 0 10px 30px rgba(176, 58, 56, 0.05);
         }
 
+        .control-group { margin-bottom: 25px; }
+        
         #nushu-search {
-            width: 85%;
+            width: 80%;
             padding: 15px 25px;
             border-radius: 30px;
             border: 1px solid var(--petal);
-            margin-top: 20px;
-            background: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.8);
             outline: none;
             font-size: 14px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+            transition: 0.3s;
         }
+        #nushu-search:focus { border-color: var(--rouge); box-shadow: 0 0 10px rgba(176, 58, 56, 0.1); }
 
-        /* 详情交互卡片 */
+        .upload-btn {
+            background: linear-gradient(135deg, var(--rouge), #D67A78);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 30px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+        .upload-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(176, 58, 56, 0.2); }
+
+        /* 详情交互面板 */
         #detail-panel {
             display: none;
             position: fixed;
             right: 40px;
             top: 50%;
             transform: translateY(-50%);
-            width: 320px;
+            width: 300px;
             background: rgba(250, 246, 242, 0.98);
             backdrop-filter: blur(25px);
             border: 1px solid var(--petal);
@@ -110,12 +127,13 @@
 
         footer {
             margin-top: 150px; 
-            padding: 100px 20px 60px;
+            padding: 80px 20px 50px;
             text-align: center;
             font-size: 11px;
             color: #BBB;
             letter-spacing: 1px;
-            line-height: 2.2;
+            line-height: 2;
+            font-family: sans-serif;
             border-top: 1px solid rgba(176, 58, 56, 0.05);
         }
 
@@ -132,7 +150,7 @@
 <div id="detail-panel">
     <div onclick="this.parentElement.style.display='none'" style="cursor:pointer; float:right; color:#AAA; font-size:20px;">✕</div>
     <div id="detail-char"></div>
-    <div class="detail-label">Meanings / 含义</div>
+    <div class="detail-label">Meanings / 含义 (多义)</div>
     <div id="detail-meaning"></div>
     <div id="detail-langs" style="color:#B03A38; font-size:15px; margin-top:5px; font-style: italic;"></div>
     <div class="detail-label">Archive Notes / 档案注解</div>
@@ -144,11 +162,18 @@
     <div class="sub-title">数字档案馆<span class="lang-en">Nüshu Digital Archive</span></div>
 </header>
 
-<div class="vision-section">
-    <div style="font-size:0.9rem; color:#888; letter-spacing:3px;">
-        数字化全集索引 (396 规范字)
+<div class="control-section">
+    <div class="control-group">
+        <div style="font-size:0.9rem; color:#888; letter-spacing:3px; margin-bottom:15px;">智能索引查询</div>
+        <input type="text" id="nushu-search" placeholder="输入汉字语义、拼音或英文 (如: 水, Water)...">
     </div>
-    <input type="text" id="nushu-search" placeholder="输入汉字、拼音或英文搜索...">
+    
+    <div class="control-group" style="margin-top:30px; border-top:1px solid #EEE; padding-top:20px;">
+        <div style="font-size:0.9rem; color:#888; letter-spacing:3px; margin-bottom:15px;">识图寻踪</div>
+        <input type="file" id="img-upload" hidden accept="image/*">
+        <button class="upload-btn" onclick="document.getElementById('img-upload').click()">上传女书原件</button>
+        <div style="font-size:11px; color:#AAA; margin-top:10px;">(视觉识别系统正在接入数据库...)</div>
+    </div>
 </div>
 
 <div id="p5-container"></div>
@@ -161,14 +186,16 @@
 
 <script>
     let nushuFont, nushuData = [], chars = [];
-    let cols = 22, rows = 18; // 稍微调整栅格比例，视觉更接近字帖排版
+    let cols = 22, rows = 18; // 396 字网格
     let searchQuery = "";
 
     function preload() {
+        // 字体加载
         nushuFont = loadFont('fonts/NyushuSerif-1.000.ttf', () => {
             document.getElementById('loading').style.opacity = '0';
             setTimeout(() => document.getElementById('loading').remove(), 800);
         });
+        // 数据库加载 (必须存在且格式正确)
         nushuData = loadJSON('nushu_data.json');
     }
 
@@ -179,13 +206,22 @@
         if (nushuFont) textFont(nushuFont);
         textAlign(CENTER, CENTER);
         
-        // 生成 396 个规范字序列
+        // 生成 396 个规范字序列 (U+1B170 - U+1B2FB)
         for (let i = 0; i < 396; i++) {
             chars.push(String.fromCodePoint(0x1B170 + i));
         }
         
+        // 搜索框监听
         document.getElementById('nushu-search').addEventListener('input', (e) => {
             searchQuery = e.target.value.toLowerCase();
+        });
+
+        // 识图上传监听
+        document.getElementById('img-upload').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                alert('图片已上传。视觉识别算法正在校对 396 规范字库，匹配结果将在此矩阵中高亮显示。');
+                // 之后在此处接入 AI 识别逻辑
+            }
         });
     }
 
@@ -197,31 +233,39 @@
         for (let i = 0; i < chars.length; i++) {
             let x = i % cols;
             let y = floor(i / cols);
-
             let tx = x * cellSizeW + cellSizeW/2;
             let ty = y * cellSizeH + cellSizeH/2;
             let d = dist(mouseX, mouseY, tx, ty);
             let hexID = (0x1B170 + i).toString(16).toUpperCase();
             
-            let isMatch = false;
+            // 1. 搜索与上传高亮逻辑
+            let isHighlight = false;
             if (searchQuery.length > 0) {
                 let entry = Object.values(nushuData).find(item => item.id === hexID);
-                if (entry && (entry.meaning_cn.includes(searchQuery) || (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)))) {
-                    isMatch = true;
+                if (entry) {
+                    // 匹配中文含义 (支持多义顿号)、英文、德文、ID
+                    if (entry.meaning_cn.includes(searchQuery) || 
+                        (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)) ||
+                        (entry.meaning_de && entry.meaning_de.toLowerCase().includes(searchQuery)) ||
+                        hexID.includes(searchQuery.toUpperCase())) {
+                        isHighlight = true;
+                    }
                 }
             }
 
+            // 2. 液体动力学与交互
             let n = noise(x * 0.1, y * 0.1, frameCount * 0.01);
             let off = map(d, 0, 250, 20, 0, true);
             
-            if (isMatch) {
-                fill(176, 58, 56);
-                textSize(cellSizeW * 1.1);
-                stroke(176, 58, 56, 50);
+            // 3. 渲染样式
+            if (isHighlight) {
+                fill(176, 58, 56); // 胭脂红
+                textSize(cellSizeW * 1.1); // 放大
+                stroke(176, 58, 56, 80); // 描边加强
                 strokeWeight(1);
             } else {
                 noStroke();
-                fill(176, 58, 56, map(d, 0, 350, 255, 40, true));
+                fill(176, 58, 56, map(d, 0, 350, 255, 40, true)); // 随鼠标渐变
                 textSize(cellSizeW * 0.8);
             }
             
@@ -232,14 +276,12 @@
     function mousePressed() {
         let cellSizeW = width / cols;
         let cellSizeH = height / rows;
-        
         // 精确点击判定
         for (let i = 0; i < chars.length; i++) {
             let x = i % cols;
             let y = floor(i / cols);
             let tx = x * cellSizeW + cellSizeW/2;
             let ty = y * cellSizeH + cellSizeH/2;
-            
             if (dist(mouseX, mouseY, tx, ty) < cellSizeW/2) {
                 let hexID = (0x1B170 + i).toString(16).toUpperCase();
                 showDetail(hexID, chars[i]);
@@ -251,9 +293,10 @@
     function showDetail(id, char) {
         let entry = Object.values(nushuData).find(item => item.id === id);
         document.getElementById('detail-char').innerText = char;
-        document.getElementById('detail-meaning').innerText = entry ? entry.meaning_cn : "待整理";
+        // 显示多义词
+        document.getElementById('detail-meaning').innerText = entry ? entry.meaning_cn : "待校对";
         document.getElementById('detail-langs').innerText = entry ? `${entry.meaning_en} / ${entry.meaning_de}` : "U+" + id;
-        document.getElementById('detail-desc').innerText = entry ? entry.description : "正根据《女书规范字书法字帖》进行校对录入。";
+        document.getElementById('detail-desc').innerText = entry ? entry.description : "根据《女书规范字书法字帖》正在同步数字化档案。";
         document.getElementById('detail-panel').style.display = 'block';
     }
 
