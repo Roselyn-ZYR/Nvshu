@@ -15,16 +15,16 @@
     "meaning_cn": "两、日、入、二",
     "meaning_en": "Two / Sun / Enter",
     "meaning_de": "Zwei / Sonne / Eintreten",
-    "description": "多义字。包含数词‘二’、‘两’，名词‘日’，以及动词‘入’。"
+    "description": "多义字。包含数词‘二’、名词‘日’，以及动词‘入’。"
   },
   {
     "id": "1B172",
     "char": "𡝲",
     "pinyin": "qī",
     "meaning_cn": "傺、错、七",
-    "meaning_en": "Stop / Wrong / Seven",
-    "meaning_de": "Stoppen / Falsch / Sieben",
-    "description": "多义字。包含数词‘七’，以及‘傺’（停顿）、‘错’等含义。"
+    "meaning_en": "Seven / Stop / Wrong",
+    "meaning_de": "Sieben / Stoppen / Falsch",
+    "description": "多义字。包含数词‘七’及停顿、错误之意。"
   },
   {
     "id": "1B173",
@@ -34,8 +34,7 @@
     "meaning_en": "Person / Human",
     "meaning_de": "Mensch",
     "description": "基本名词，代表人类或个体。"
-  }
-  [
+  },
   {
     "id": "1B174",
     "char": "𡝴",
@@ -48,29 +47,29 @@
   {
     "id": "1B175",
     "char": "𡝵",
-    "pinyin": "shí / shì",
+    "pinyin": "shí",
     "meaning_cn": "十、事、实、侍、拾、莳、是、誓",
     "meaning_en": "Ten / Matter / Truth / Swear",
     "meaning_de": "Zehn / Angelegenheit / Wahrheit / Schwören",
-    "description": "多义字。涵盖数词‘十’、抽象名词‘事/实’以及动词‘誓’等。"
+    "description": "涵盖数词‘十’、抽象名词‘事/实’以及动词‘誓’等。"
   },
   {
     "id": "1B176",
     "char": "𡝶",
-    "pinyin": "biāo / piào",
+    "pinyin": "biāo",
     "meaning_cn": "标、蜂、漂、飘、批、披、喷、片、骗",
-    "meaning_en": "Mark / Bee / Float / Piece / Deceive",
-    "meaning_de": "Markieren / Biene / Treiben / Stück / Täuschen",
-    "description": "多义字。包含自然现象‘飘/漂’以及具体的动词与名词。"
+    "meaning_en": "Mark / Bee / Float / Deceive",
+    "meaning_de": "Markieren / Biene / Treiben / Täuschen",
+    "description": "涵盖自然现象‘飘’及动词‘骗/批’等。"
   },
   {
     "id": "1B177",
     "char": "𡝷",
     "pinyin": "yǔ / wǔ",
     "meaning_cn": "约、雨、宇、羽、舞、屋、武",
-    "meaning_en": "About / Rain / Feather / Dance / House",
-    "meaning_de": "Ungefähr / Regen / Feder / Tanz / Haus",
-    "description": "多义字。包含自然天气‘雨’、生活空间‘屋’以及艺术动作‘舞’。"
+    "meaning_en": "Rain / Dance / House / About",
+    "meaning_de": "Regen / Tanz / Haus / Ungefähr",
+    "description": "包含自然天气‘雨’、建筑‘屋’以及艺术‘舞’。"
   },
   {
     "id": "1B178",
@@ -88,7 +87,96 @@
     "meaning_cn": "了、礼、弟、帝、吊、调、丫",
     "meaning_en": "Finish / Rite / Brother / Emperor",
     "meaning_de": "Beenden / Ritus / Bruder / Kaiser",
-    "description": "多义字。涵盖社会关系‘弟’、礼仪‘礼’以及动词‘了’等。"
+    "description": "涵盖社会关系‘弟’、礼仪‘礼’以及动词‘了’等。"
+  },
+  {
+    "id": "1B17A",
+    "char": "𡝺",
+    "pinyin": "bǎi",
+    "meaning_cn": "百",
+    "meaning_en": "Hundred",
+    "meaning_de": "Hundert",
+    "description": "数词。"
+  },
+  {
+    "id": "1B17B",
+    "char": "𡝻",
+    "pinyin": "qiān",
+    "meaning_cn": "千",
+    "meaning_en": "Thousand",
+    "meaning_de": "Tausend",
+    "description": "数词。"
+  },
+  {
+    "id": "1B17C",
+    "char": "𡝼",
+    "pinyin": "wàn",
+    "meaning_cn": "万",
+    "meaning_en": "Ten Thousand",
+    "meaning_de": "Zehntausend",
+    "description": "数词。"
+  },
+  {
+    "id": "1B17D",
+    "char": "𡝽",
+    "pinyin": "shàng",
+    "meaning_cn": "上",
+    "meaning_en": "Up / Above",
+    "meaning_de": "Oben",
+    "description": "方位词。"
+  },
+  {
+    "id": "1B17E",
+    "char": "𡝾",
+    "pinyin": "xià",
+    "meaning_cn": "下",
+    "meaning_en": "Down / Below",
+    "meaning_de": "Unten",
+    "description": "方位词。"
+  },
+  {
+    "id": "1B17F",
+    "char": "𡝿",
+    "pinyin": "zuǒ",
+    "meaning_cn": "左",
+    "meaning_en": "Left",
+    "meaning_de": "Links",
+    "description": "方位词。"
+  },
+  {
+    "id": "1B180",
+    "char": "𡆀",
+    "pinyin": "yòu",
+    "meaning_cn": "右",
+    "meaning_en": "Right",
+    "meaning_de": "Rechts",
+    "description": "方位词。"
+  },
+  {
+    "id": "1B181",
+    "char": "𡆁",
+    "pinyin": "nǚ",
+    "meaning_cn": "女、汝、娘",
+    "meaning_en": "Woman / Mother / You",
+    "meaning_de": "Frau / Mutter / Du",
+    "description": "核心词汇。标题‘女’字所在，代表女性及母性。"
+  },
+  {
+    "id": "1B182",
+    "char": "𡆂",
+    "pinyin": "qián",
+    "meaning_cn": "前",
+    "meaning_en": "Front",
+    "meaning_de": "Vor",
+    "description": "方位词。"
+  },
+  {
+    "id": "1B183",
+    "char": "𡆃",
+    "pinyin": "hòu",
+    "meaning_cn": "后",
+    "meaning_en": "Back / After",
+    "meaning_de": "Hinten",
+    "description": "方位/时间词。"
   }
-]
 ]
