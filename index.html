@@ -17,7 +17,6 @@
             --ink-main: #2C2C2C;
             --rouge: #B03A38;
             --petal: #E8D3D1;
-            --dark-grey: #333333;
         }
 
         body {
@@ -38,7 +37,6 @@
             text-align: center;
         }
 
-        /* 标题：根据指正修改“书”字编码 */
         .main-title {
             font-family: 'NvshuSerif', serif !important;
             font-size: clamp(80px, 12vw, 120px); 
@@ -64,40 +62,38 @@
             text-transform: uppercase;
         }
 
-        /* 搜索与识图区 */
+        /* 控制区域 */
         .control-section {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--petal);
             border-radius: 50px;
-            max-width: 650px;
+            max-width: 600px;
             margin: 0 auto 50px;
-            padding: 40px;
+            padding: 35px;
             text-align: center;
         }
-
-        .input-wrapper { margin-bottom: 25px; }
 
         #nushu-search {
             width: 85%;
             padding: 15px 25px;
             border-radius: 30px;
             border: 1px solid var(--petal);
-            background: white;
+            background: rgba(255,255,255,0.8);
             outline: none;
             font-size: 14px;
+            margin-bottom: 25px;
         }
 
         .upload-btn {
-            background: var(--dark-grey);
+            background: linear-gradient(135deg, var(--rouge), #D67A78);
             color: white;
             border: none;
-            padding: 12px 45px;
+            padding: 12px 40px;
             border-radius: 30px;
             cursor: pointer;
             letter-spacing: 2px;
-            font-size: 12px;
-            transition: 0.3s;
+            font-size: 13px;
         }
 
         /* 详情面板 */
@@ -113,32 +109,23 @@
             border: 1px solid var(--petal);
             padding: 40px;
             border-radius: 40px;
-            box-shadow: 0 40px 80px rgba(0,0,0,0.1);
+            box-shadow: 0 40px 80px rgba(176, 58, 56, 0.15);
             z-index: 1001;
         }
 
         #detail-char { font-family: 'NvshuSerif'; font-size: 130px; color: var(--rouge); text-align: center; }
-        .detail-label { font-size: 10px; color: #AAA; letter-spacing: 2px; margin-top: 25px; text-transform: uppercase; }
+        .detail-label { font-size: 11px; color: #AAA; letter-spacing: 2px; margin-top: 25px; text-transform: uppercase; }
         #detail-meaning { font-size: 26px; color: var(--ink-main); margin: 5px 0; }
 
-        /* 截图风格致谢：深灰背景，竖向文字排版 */
         footer {
-            background-color: var(--dark-grey);
-            color: #FFFFFF;
-            padding: 60px 20px;
-            text-align: left;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .footer-content {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            font-size: 14px;
-            line-height: 1.8;
+            margin-top: 150px; 
+            padding: 80px 20px;
+            text-align: center;
+            font-size: 11px;
+            color: #BBB;
             letter-spacing: 1px;
-            opacity: 0.9;
+            line-height: 2;
+            border-top: 1px solid rgba(176, 58, 56, 0.05);
         }
 
         #p5-container { width: 100%; display: flex; justify-content: center; cursor: crosshair; }
@@ -152,12 +139,12 @@
 </div>
 
 <div id="detail-panel">
-    <div onclick="this.parentElement.style.display='none'" style="cursor:pointer; float:right; color:#AAA;">✕</div>
+    <div onclick="this.parentElement.style.display='none'" style="cursor:pointer; float:right; color:#AAA; font-size:20px;">✕</div>
     <div id="detail-char"></div>
     <div class="detail-label">Meanings / 含义</div>
     <div id="detail-meaning"></div>
-    <div id="detail-langs" style="color:#B03A38; font-size:14px; margin-top:5px;"></div>
-    <div class="detail-label">Notes / 注解</div>
+    <div id="detail-langs" style="color:#B03A38; font-size:15px; margin-top:5px; font-style: italic;"></div>
+    <div class="detail-label">Archive Notes / 注解</div>
     <div id="detail-desc" style="font-size:13px; line-height:1.6; color:#666;"></div>
 </div>
 
@@ -167,25 +154,18 @@
 </header>
 
 <div class="control-section">
-    <div class="input-wrapper">
-        <div style="font-size:0.8rem; color:#888; letter-spacing:3px; margin-bottom:12px;">搜索索引 / SEARCH INDEX</div>
-        <input type="text" id="nushu-search" placeholder="输入汉字、拼音或英文 (Chinese / Pinyin / English)...">
-    </div>
-    
-    <div style="border-top: 1px solid #EEE; padding-top: 25px;">
-        <div style="font-size:0.8rem; color:#888; letter-spacing:3px; margin-bottom:12px;">识图寻踪 / IMAGE RECOGNITION</div>
-        <input type="file" id="img-upload" hidden accept="image/*">
-        <button class="upload-btn" onclick="document.getElementById('img-upload').click()">UPLOAD IMAGE</button>
-    </div>
+    <input type="text" id="nushu-search" placeholder="搜索含义... (Search meanings / Suche)">
+    <br>
+    <div style="font-size:0.85rem; color:#888; letter-spacing:3px; margin-bottom:15px;">识图寻踪 / IMAGE RECOGNITION</div>
+    <input type="file" id="img-upload" hidden accept="image/*">
+    <button class="upload-btn" onclick="document.getElementById('img-upload').click()">UPLOAD IMAGE</button>
 </div>
 
 <div id="p5-container"></div>
 
 <footer>
-    <div class="footer-content">
-        Thanks to the support from<br>
-        Frauenförderfonds of Bauhaus-Universität Weimar.
-    </div>
+    Supported by <strong>Frauenförderfonds</strong> of Bauhaus-Universität Weimar<br>
+    Media Architecture Project
 </footer>
 
 <script>
@@ -198,7 +178,13 @@
             document.getElementById('loading').style.opacity = '0';
             setTimeout(() => document.getElementById('loading').remove(), 800);
         });
-        nushuData = loadJSON('nushu_data.json');
+        
+        // 使用 loadJSON 的回调，防止加载失败导致脚本崩溃
+        loadJSON('nushu_data.json', (data) => {
+            nushuData = data;
+        }, (err) => {
+            console.error("JSON加载失败，请检查路径及文件格式。");
+        });
     }
 
     function setup() {
@@ -207,9 +193,11 @@
         cnv.parent('p5-container');
         if (nushuFont) textFont(nushuFont);
         textAlign(CENTER, CENTER);
+        
         for (let i = 0; i < 396; i++) {
             chars.push(String.fromCodePoint(0x1B170 + i));
         }
+        
         document.getElementById('nushu-search').addEventListener('input', (e) => {
             searchQuery = e.target.value.toLowerCase();
         });
@@ -219,6 +207,7 @@
         clear();
         let cellSizeW = width / cols;
         let cellSizeH = height / rows;
+        
         for (let i = 0; i < chars.length; i++) {
             let x = i % cols;
             let y = floor(i / cols);
@@ -228,12 +217,14 @@
             let hexID = (0x1B170 + i).toString(16).toUpperCase();
             
             let isHighlight = false;
-            if (searchQuery.length > 0) {
+            if (searchQuery.length > 0 && nushuData.length > 0) {
                 let entry = Object.values(nushuData).find(item => item.id === hexID);
-                if (entry && (entry.meaning_cn.includes(searchQuery) || 
-                   (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)) ||
-                   (entry.meaning_de && entry.meaning_de.toLowerCase().includes(searchQuery)))) {
-                    isHighlight = true;
+                if (entry) {
+                    if (entry.meaning_cn.includes(searchQuery) || 
+                        (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)) ||
+                        (entry.meaning_de && entry.meaning_de.toLowerCase().includes(searchQuery))) {
+                        isHighlight = true;
+                    }
                 }
             }
 
@@ -241,7 +232,7 @@
             let off = map(d, 0, 250, 15, 0, true);
             
             if (isHighlight) {
-                fill(var(--rouge));
+                fill(176, 58, 56);
                 textSize(cellSizeW * 1.1);
             } else {
                 fill(176, 58, 56, map(d, 0, 350, 255, 40, true));
@@ -270,7 +261,7 @@
         document.getElementById('detail-char').innerText = char;
         document.getElementById('detail-meaning').innerText = entry ? entry.meaning_cn : "Data Pending";
         document.getElementById('detail-langs').innerText = entry ? `${entry.meaning_en} / ${entry.meaning_de}` : "U+" + id;
-        document.getElementById('detail-desc').innerText = entry ? entry.description : "Archiving information from Professor Zhao Liming's calligraphy guide.";
+        document.getElementById('detail-desc').innerText = entry ? (entry.description || "Archiving details...") : "Digital Archive processing.";
         document.getElementById('detail-panel').style.display = 'block';
     }
 
