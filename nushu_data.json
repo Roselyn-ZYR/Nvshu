@@ -152,14 +152,20 @@
     "meaning_de": "Rechts",
     "description": "方位词。"
   },
-  {
+  
+{
     "id": "1B181",
     "char": "𡆁",
     "pinyin": "nǚ",
     "meaning_cn": "女、汝、娘",
     "meaning_en": "Woman / Mother / You",
     "meaning_de": "Frau / Mutter / Du",
-    "description": "核心词汇。标题‘女’字所在，代表女性及母性。"
+    "description": "核心词汇。标题‘女’字所在，代表女性及母性。",
+    "artist": {
+      "name": "Pan Yuliang (潘玉良)",
+      "bio": "从社会底层逆袭到巴黎的传奇女画家，用画笔夺回了女性身体的自主表达权。",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Pan_Yuliang.jpg/800px-Pan_Yuliang.jpg"
+    }
   },
   {
     "id": "1B182",
