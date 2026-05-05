@@ -211,9 +211,9 @@
     }
 
     function setup() {
-        let w = min(windowWidth * 0.95, 1200);
+        let w = min(windowWidth * 0.95, 1500);
         // 【修改点 2】：适当增加画布高度，给上下留出呼吸空间
-        let cnv = createCanvas(w, 880); 
+        let cnv = createCanvas(w, 1100); 
         cnv.parent('p5-container');
         if (nushuFont) textFont(nushuFont);
         textAlign(CENTER, CENTER);
@@ -344,7 +344,7 @@
     }
 
     function windowResized() {
-        resizeCanvas(min(windowWidth * 0.95, 1200), 880);
+        resizeCanvas(min(windowWidth * 0.95, 1500), 1100);
     }
 </script>
 </body>
