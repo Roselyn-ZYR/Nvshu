@@ -37,6 +37,7 @@
             text-align: center;
         }
 
+        /* 标题：已彻底改回你确认的 1B22C */
         .main-title {
             font-family: 'NvshuSerif', serif !important;
             font-size: clamp(80px, 12vw, 120px); 
@@ -95,7 +96,6 @@
             font-size: 13px;
         }
 
-        /* 详情面板与盲盒样式 */
         #detail-panel {
             display: none;
             position: fixed;
@@ -158,7 +158,6 @@
     <div class="detail-label">Context / 应用</div>
     <div id="detail-desc" style="font-size:13px; line-height:1.6; color:#666;"></div>
 
-    <!-- 艺术家盲盒 -->
     <div id="artist-box">
         <div class="detail-label" style="color:var(--rouge)">✨ Creative Power / 艺术力量</div>
         <img id="artist-img" class="artist-img" src="" alt="Artist">
@@ -168,7 +167,8 @@
 </div>
 
 <header>
-    <div class="main-title">&#x1B181;&#x1B228;</div>
+    <!-- 已经改回 1B22C -->
+    <div class="main-title">&#x1B181;&#x1B22C;</div>
     <div class="sub-title">数字档案馆<span class="lang-en">Nüshu Digital Archive</span></div>
 </header>
 
@@ -189,11 +189,8 @@
 
 <script>
     let nushuFont, nushuData = [], chars = [];
-    // 【修改点 1】：一行 24 列，共 17 行 (24 * 17 = 408，足够容纳 396 字)
     let cols = 24, rows = 17; 
     let searchQuery = "";
-    
-    // 识别动画相关变量
     let isScanning = false;
     let scanY = 0;
 
@@ -211,8 +208,8 @@
     }
 
     function setup() {
-        let w = min(windowWidth * 0.95, 1500);
-        // 【修改点 2】：适当增加画布高度，给上下留出呼吸空间
+        let w = min(windowWidth * 0.90, 1200);
+        // 画布拉高到 1100，让行距更宽
         let cnv = createCanvas(w, 1100); 
         cnv.parent('p5-container');
         if (nushuFont) textFont(nushuFont);
@@ -242,9 +239,9 @@
     function draw() {
         clear();
         
-        // 【修改点 3】：引入安全边距 (Padding)，防止边缘字符被切掉
         let padX = 40;
-        let padY = 40;
+        // 增加上下留白，配合拉长的画布高度，让矩阵更有呼吸感
+        let padY = 60; 
         let drawW = width - padX * 2;
         let drawH = height - padY * 2;
         
@@ -255,7 +252,6 @@
             let x = i % cols;
             let y = floor(i / cols);
             
-            // 计算坐标时加上边距
             let tx = padX + x * cellSizeW + cellSizeW / 2;
             let ty = padY + y * cellSizeH + cellSizeH / 2;
             let d = dist(mouseX, mouseY, tx, ty);
@@ -263,7 +259,6 @@
             
             let isHighlight = false;
             
-            // 搜索逻辑
             if (searchQuery.length > 0 && nushuData.length > 0) {
                 let entry = Object.values(nushuData).find(item => item.id === hexID);
                 if (entry) {
@@ -275,7 +270,6 @@
                 }
             }
 
-            // 扫描高亮逻辑
             if (isScanning && abs(ty - scanY) < 40) {
                 isHighlight = true;
             }
@@ -285,7 +279,7 @@
             
             if (isHighlight) {
                 fill(176, 58, 56);
-                textSize(cellSizeW * 1.15); // 放大选中状态
+                textSize(cellSizeW * 1.15); 
             } else {
                 fill(176, 58, 56, map(d, 0, 350, 255, 30, true));
                 textSize(cellSizeW * 0.85);
@@ -293,7 +287,6 @@
             text(chars[i], tx + cos(n * TWO_PI) * off, ty + sin(n * TWO_PI) * off);
         }
 
-        // 绘制扫描线
         if (isScanning) {
             stroke(176, 58, 56, 120);
             strokeWeight(2);
@@ -305,7 +298,7 @@
     }
 
     function mousePressed() {
-        let padX = 40, padY = 40;
+        let padX = 40, padY = 60;
         let drawW = width - padX * 2, drawH = height - padY * 2;
         let cellSizeW = drawW / cols, cellSizeH = drawH / rows;
         
@@ -329,7 +322,6 @@
         document.getElementById('detail-langs').innerText = entry ? `${entry.meaning_en} / ${entry.meaning_de || '-'}` : "U+" + id;
         document.getElementById('detail-desc').innerText = entry ? (entry.description || "Digital Archive processing.") : "Archiving details from Zhao Liming's Nushu Guide.";
         
-        // 艺术家填充逻辑
         let artistBox = document.getElementById('artist-box');
         if (entry && entry.artist) {
             artistBox.style.display = 'block';
@@ -344,7 +336,7 @@
     }
 
     function windowResized() {
-        resizeCanvas(min(windowWidth * 0.95, 1500), 1100);
+        resizeCanvas(min(windowWidth * 0.90, 1200), 1100);
     }
 </script>
 </body>
