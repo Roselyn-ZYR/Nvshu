@@ -62,7 +62,6 @@
             text-transform: uppercase;
         }
 
-        /* 控制区域 */
         .control-section {
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(10px);
@@ -96,26 +95,39 @@
             font-size: 13px;
         }
 
-        /* 详情面板 */
+        /* [NEW] 详情面板：增加艺术家盲盒样式 */
         #detail-panel {
             display: none;
             position: fixed;
             right: 40px;
             top: 50%;
             transform: translateY(-50%);
-            width: 300px;
-            background: rgba(250, 246, 242, 0.98);
+            width: 320px;
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(25px);
             border: 1px solid var(--petal);
             padding: 40px;
             border-radius: 40px;
             box-shadow: 0 40px 80px rgba(176, 58, 56, 0.15);
             z-index: 1001;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
-        #detail-char { font-family: 'NvshuSerif'; font-size: 130px; color: var(--rouge); text-align: center; }
-        .detail-label { font-size: 11px; color: #AAA; letter-spacing: 2px; margin-top: 25px; text-transform: uppercase; }
-        #detail-meaning { font-size: 26px; color: var(--ink-main); margin: 5px 0; }
+        #detail-char { font-family: 'NvshuSerif'; font-size: 100px; color: var(--rouge); text-align: center; }
+        .detail-label { font-size: 10px; color: #AAA; letter-spacing: 2px; margin-top: 20px; text-transform: uppercase; }
+        #detail-meaning { font-size: 24px; color: var(--ink-main); margin: 5px 0; }
+
+        /* [NEW] 盲盒区域样式 */
+        #artist-box {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--petal);
+            animation: fadeIn 1s;
+        }
+        .artist-img { width: 100%; border-radius: 20px; filter: grayscale(1); transition: 0.5s; margin-top: 10px; }
+        .artist-img:hover { filter: grayscale(0); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         footer {
             margin-top: 150px; 
@@ -143,13 +155,21 @@
     <div id="detail-char"></div>
     <div class="detail-label">Meanings / 含义</div>
     <div id="detail-meaning"></div>
-    <div id="detail-langs" style="color:#B03A38; font-size:15px; margin-top:5px; font-style: italic;"></div>
-    <div class="detail-label">Archive Notes / 注解</div>
-    <div id="detail-desc" style="font-size:13px; line-height:1.6; color:#666;"></div>
+    <div id="detail-langs" style="color:#B03A38; font-size:14px; margin-top:5px; font-style: italic;"></div>
+    <div class="detail-label">Context / 应用</div>
+    <div id="detail-desc" style="font-size:13px; line-height:1.6; color:#666; font-style: italic;"></div>
+
+    <!-- [NEW] 盲盒部分：点击字时自动匹配一位艺术家 -->
+    <div id="artist-box">
+        <div class="detail-label" style="color:var(--rouge)">✨ Creative Power / 艺术力量</div>
+        <img id="artist-img" class="artist-img" src="" alt="Artist">
+        <div id="artist-name" style="font-weight: bold; margin-top: 10px;"></div>
+        <div id="artist-bio" style="font-size: 12px; color: #888; margin-top: 5px; line-height: 1.4;"></div>
+    </div>
 </div>
 
 <header>
-    <div class="main-title">&#x1B181;&#x1B22C;</div>
+    <div class="main-title">&#x1B181;&#x1B228;</div>
     <div class="sub-title">数字档案馆<span class="lang-en">Nüshu Digital Archive</span></div>
 </header>
 
@@ -158,7 +178,8 @@
     <br>
     <div style="font-size:0.85rem; color:#888; letter-spacing:3px; margin-bottom:15px;">识图寻踪 / IMAGE RECOGNITION</div>
     <input type="file" id="img-upload" hidden accept="image/*">
-    <button class="upload-btn" onclick="document.getElementById('img-upload').click()">UPLOAD IMAGE</button>
+    <!-- [NEW] 这里的 onclick 修改为识别动画逻辑 -->
+    <button class="upload-btn" onclick="startRecognition()">UPLOAD & SCAN</button>
 </div>
 
 <div id="p5-container"></div>
@@ -172,6 +193,10 @@
     let nushuFont, nushuData = [], chars = [];
     let cols = 22, rows = 18; 
     let searchQuery = "";
+    
+    // [NEW] 识别动画相关变量
+    let isScanning = false;
+    let scanY = 0;
 
     function preload() {
         nushuFont = loadFont('fonts/NyushuSerif-1.000.ttf', () => {
@@ -179,11 +204,10 @@
             setTimeout(() => document.getElementById('loading').remove(), 800);
         });
         
-        // 使用 loadJSON 的回调，防止加载失败导致脚本崩溃
         loadJSON('nushu_data.json', (data) => {
             nushuData = data;
         }, (err) => {
-            console.error("JSON加载失败，请检查路径及文件格式。");
+            console.error("JSON加载失败。");
         });
     }
 
@@ -203,6 +227,19 @@
         });
     }
 
+    // [NEW] 模拟识别功能
+    function startRecognition() {
+        document.getElementById('img-upload').click();
+        document.getElementById('img-upload').onchange = () => {
+            isScanning = true;
+            scanY = 0;
+            setTimeout(() => {
+                isScanning = false;
+                alert("识别完成：匹配到相关女书字符。");
+            }, 3000); // 扫描3秒后结束
+        };
+    }
+
     function draw() {
         clear();
         let cellSizeW = width / cols;
@@ -217,15 +254,17 @@
             let hexID = (0x1B170 + i).toString(16).toUpperCase();
             
             let isHighlight = false;
+            // 搜索逻辑
             if (searchQuery.length > 0 && nushuData.length > 0) {
                 let entry = Object.values(nushuData).find(item => item.id === hexID);
-                if (entry) {
-                    if (entry.meaning_cn.includes(searchQuery) || 
-                        (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)) ||
-                        (entry.meaning_de && entry.meaning_de.toLowerCase().includes(searchQuery))) {
-                        isHighlight = true;
-                    }
+                if (entry && (entry.meaning_cn.includes(searchQuery) || (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)))) {
+                    isHighlight = true;
                 }
+            }
+
+            // [NEW] 扫描高亮逻辑
+            if (isScanning && abs(ty - scanY) < 30) {
+                isHighlight = true;
             }
 
             let n = noise(x * 0.1, y * 0.1, frameCount * 0.01);
@@ -239,6 +278,16 @@
                 textSize(cellSizeW * 0.85);
             }
             text(chars[i], tx + cos(n * TWO_PI) * off, ty + sin(n * TWO_PI) * off);
+        }
+
+        // [NEW] 绘制扫描线
+        if (isScanning) {
+            stroke(176, 58, 56, 100);
+            strokeWeight(2);
+            line(0, scanY, width, scanY);
+            scanY += 5;
+            if (scanY > height) scanY = 0;
+            noStroke();
         }
     }
 
@@ -256,12 +305,24 @@
         }
     }
 
+    // [NEW] 详情显示逻辑增加“艺术家盲盒”
     function showDetail(id, char) {
         let entry = Object.values(nushuData).find(item => item.id === id);
         document.getElementById('detail-char').innerText = char;
         document.getElementById('detail-meaning').innerText = entry ? entry.meaning_cn : "Data Pending";
         document.getElementById('detail-langs').innerText = entry ? `${entry.meaning_en} / ${entry.meaning_de}` : "U+" + id;
-        document.getElementById('detail-desc').innerText = entry ? (entry.description || "Archiving details...") : "Digital Archive processing.";
+        document.getElementById('detail-desc').innerText = entry ? (entry.description || "Living sentence application...") : "Digital Archive processing.";
+        
+        // 艺术家填充逻辑
+        if (entry && entry.artist) {
+            document.getElementById('artist-box').style.display = 'block';
+            document.getElementById('artist-name').innerText = entry.artist.name;
+            document.getElementById('artist-bio').innerText = entry.artist.bio;
+            document.getElementById('artist-img').src = entry.artist.image_url;
+        } else {
+            document.getElementById('artist-box').style.display = 'none';
+        }
+        
         document.getElementById('detail-panel').style.display = 'block';
     }
 
