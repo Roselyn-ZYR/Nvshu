@@ -29,7 +29,7 @@
         }
 
         header {
-            height: 40vh;
+            height: 35vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -68,7 +68,7 @@
             border: 1px solid var(--petal);
             border-radius: 50px;
             max-width: 600px;
-            margin: 0 auto 50px;
+            margin: 0 auto 30px;
             padding: 35px;
             text-align: center;
         }
@@ -95,7 +95,7 @@
             font-size: 13px;
         }
 
-        /* [NEW] 详情面板：增加艺术家盲盒样式 */
+        /* 详情面板与盲盒样式 */
         #detail-panel {
             display: none;
             position: fixed;
@@ -103,34 +103,33 @@
             top: 50%;
             transform: translateY(-50%);
             width: 320px;
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(250, 246, 242, 0.98);
             backdrop-filter: blur(25px);
             border: 1px solid var(--petal);
             padding: 40px;
             border-radius: 40px;
             box-shadow: 0 40px 80px rgba(176, 58, 56, 0.15);
             z-index: 1001;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
         }
 
-        #detail-char { font-family: 'NvshuSerif'; font-size: 100px; color: var(--rouge); text-align: center; }
-        .detail-label { font-size: 10px; color: #AAA; letter-spacing: 2px; margin-top: 20px; text-transform: uppercase; }
-        #detail-meaning { font-size: 24px; color: var(--ink-main); margin: 5px 0; }
+        #detail-char { font-family: 'NvshuSerif'; font-size: 110px; color: var(--rouge); text-align: center; line-height: 1.1; }
+        .detail-label { font-size: 10px; color: #AAA; letter-spacing: 2px; margin-top: 25px; text-transform: uppercase; }
+        #detail-meaning { font-size: 26px; color: var(--ink-main); margin: 5px 0; }
 
-        /* [NEW] 盲盒区域样式 */
         #artist-box {
-            margin-top: 30px;
+            margin-top: 25px;
             padding-top: 20px;
             border-top: 1px dashed var(--petal);
             animation: fadeIn 1s;
         }
-        .artist-img { width: 100%; border-radius: 20px; filter: grayscale(1); transition: 0.5s; margin-top: 10px; }
+        .artist-img { width: 100%; border-radius: 15px; filter: grayscale(1); transition: 0.5s; margin-top: 10px; }
         .artist-img:hover { filter: grayscale(0); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         footer {
-            margin-top: 150px; 
+            margin-top: 60px; 
             padding: 80px 20px;
             text-align: center;
             font-size: 11px;
@@ -157,9 +156,9 @@
     <div id="detail-meaning"></div>
     <div id="detail-langs" style="color:#B03A38; font-size:14px; margin-top:5px; font-style: italic;"></div>
     <div class="detail-label">Context / 应用</div>
-    <div id="detail-desc" style="font-size:13px; line-height:1.6; color:#666; font-style: italic;"></div>
+    <div id="detail-desc" style="font-size:13px; line-height:1.6; color:#666;"></div>
 
-    <!-- [NEW] 盲盒部分：点击字时自动匹配一位艺术家 -->
+    <!-- 艺术家盲盒 -->
     <div id="artist-box">
         <div class="detail-label" style="color:var(--rouge)">✨ Creative Power / 艺术力量</div>
         <img id="artist-img" class="artist-img" src="" alt="Artist">
@@ -174,11 +173,10 @@
 </header>
 
 <div class="control-section">
-    <input type="text" id="nushu-search" placeholder="搜索含义... (Search meanings / Suche)">
+    <input type="text" id="nushu-search" placeholder="搜索含义、拼音或英文 (Search / Suche)...">
     <br>
-    <div style="font-size:0.85rem; color:#888; letter-spacing:3px; margin-bottom:15px;">识图寻踪 / IMAGE RECOGNITION</div>
+    <div style="font-size:0.85rem; color:#888; letter-spacing:3px; margin-bottom:15px; margin-top:10px;">识图寻踪 / IMAGE RECOGNITION</div>
     <input type="file" id="img-upload" hidden accept="image/*">
-    <!-- [NEW] 这里的 onclick 修改为识别动画逻辑 -->
     <button class="upload-btn" onclick="startRecognition()">UPLOAD & SCAN</button>
 </div>
 
@@ -191,10 +189,11 @@
 
 <script>
     let nushuFont, nushuData = [], chars = [];
-    let cols = 22, rows = 18; 
+    // 【修改点 1】：一行 24 列，共 17 行 (24 * 17 = 408，足够容纳 396 字)
+    let cols = 24, rows = 17; 
     let searchQuery = "";
     
-    // [NEW] 识别动画相关变量
+    // 识别动画相关变量
     let isScanning = false;
     let scanY = 0;
 
@@ -207,13 +206,14 @@
         loadJSON('nushu_data.json', (data) => {
             nushuData = data;
         }, (err) => {
-            console.error("JSON加载失败。");
+            console.log("Waiting for JSON data upload.");
         });
     }
 
     function setup() {
-        let w = min(windowWidth * 0.9, 1100);
-        let cnv = createCanvas(w, 850);
+        let w = min(windowWidth * 0.95, 1200);
+        // 【修改点 2】：适当增加画布高度，给上下留出呼吸空间
+        let cnv = createCanvas(w, 880); 
         cnv.parent('p5-container');
         if (nushuFont) textFont(nushuFont);
         textAlign(CENTER, CENTER);
@@ -227,7 +227,6 @@
         });
     }
 
-    // [NEW] 模拟识别功能
     function startRecognition() {
         document.getElementById('img-upload').click();
         document.getElementById('img-upload').onchange = () => {
@@ -235,35 +234,49 @@
             scanY = 0;
             setTimeout(() => {
                 isScanning = false;
-                alert("识别完成：匹配到相关女书字符。");
-            }, 3000); // 扫描3秒后结束
+                alert("识别完成：视觉算法已匹配相关女书字符。");
+            }, 3000); 
         };
     }
 
     function draw() {
         clear();
-        let cellSizeW = width / cols;
-        let cellSizeH = height / rows;
+        
+        // 【修改点 3】：引入安全边距 (Padding)，防止边缘字符被切掉
+        let padX = 40;
+        let padY = 40;
+        let drawW = width - padX * 2;
+        let drawH = height - padY * 2;
+        
+        let cellSizeW = drawW / cols;
+        let cellSizeH = drawH / rows;
         
         for (let i = 0; i < chars.length; i++) {
             let x = i % cols;
             let y = floor(i / cols);
-            let tx = x * cellSizeW + cellSizeW/2;
-            let ty = y * cellSizeH + cellSizeH/2;
+            
+            // 计算坐标时加上边距
+            let tx = padX + x * cellSizeW + cellSizeW / 2;
+            let ty = padY + y * cellSizeH + cellSizeH / 2;
             let d = dist(mouseX, mouseY, tx, ty);
             let hexID = (0x1B170 + i).toString(16).toUpperCase();
             
             let isHighlight = false;
+            
             // 搜索逻辑
             if (searchQuery.length > 0 && nushuData.length > 0) {
                 let entry = Object.values(nushuData).find(item => item.id === hexID);
-                if (entry && (entry.meaning_cn.includes(searchQuery) || (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)))) {
-                    isHighlight = true;
+                if (entry) {
+                    if (entry.meaning_cn.includes(searchQuery) || 
+                        (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)) ||
+                        (entry.meaning_de && entry.meaning_de.toLowerCase().includes(searchQuery))) {
+                        isHighlight = true;
+                    }
                 }
             }
 
-            // [NEW] 扫描高亮逻辑
-            if (isScanning && abs(ty - scanY) < 30) {
+            // 扫描高亮逻辑
+            if (isScanning && abs(ty - scanY) < 40) {
                 isHighlight = true;
             }
 
@@ -272,32 +285,36 @@
             
             if (isHighlight) {
                 fill(176, 58, 56);
-                textSize(cellSizeW * 1.1);
+                textSize(cellSizeW * 1.15); // 放大选中状态
             } else {
-                fill(176, 58, 56, map(d, 0, 350, 255, 40, true));
+                fill(176, 58, 56, map(d, 0, 350, 255, 30, true));
                 textSize(cellSizeW * 0.85);
             }
             text(chars[i], tx + cos(n * TWO_PI) * off, ty + sin(n * TWO_PI) * off);
         }
 
-        // [NEW] 绘制扫描线
+        // 绘制扫描线
         if (isScanning) {
-            stroke(176, 58, 56, 100);
+            stroke(176, 58, 56, 120);
             strokeWeight(2);
-            line(0, scanY, width, scanY);
-            scanY += 5;
+            line(padX, scanY, width - padX, scanY);
+            scanY += 6;
             if (scanY > height) scanY = 0;
             noStroke();
         }
     }
 
     function mousePressed() {
-        let cellSizeW = width / cols;
-        let cellSizeH = height / rows;
+        let padX = 40, padY = 40;
+        let drawW = width - padX * 2, drawH = height - padY * 2;
+        let cellSizeW = drawW / cols, cellSizeH = drawH / rows;
+        
         for (let i = 0; i < chars.length; i++) {
             let x = i % cols, y = floor(i / cols);
-            let tx = x * cellSizeW + cellSizeW/2, ty = y * cellSizeH + cellSizeH/2;
-            if (dist(mouseX, mouseY, tx, ty) < cellSizeW/2) {
+            let tx = padX + x * cellSizeW + cellSizeW / 2;
+            let ty = padY + y * cellSizeH + cellSizeH / 2;
+            
+            if (dist(mouseX, mouseY, tx, ty) < cellSizeW / 1.5) {
                 let hexID = (0x1B170 + i).toString(16).toUpperCase();
                 showDetail(hexID, chars[i]);
                 break;
@@ -305,29 +322,29 @@
         }
     }
 
-    // [NEW] 详情显示逻辑增加“艺术家盲盒”
     function showDetail(id, char) {
         let entry = Object.values(nushuData).find(item => item.id === id);
         document.getElementById('detail-char').innerText = char;
-        document.getElementById('detail-meaning').innerText = entry ? entry.meaning_cn : "Data Pending";
-        document.getElementById('detail-langs').innerText = entry ? `${entry.meaning_en} / ${entry.meaning_de}` : "U+" + id;
-        document.getElementById('detail-desc').innerText = entry ? (entry.description || "Living sentence application...") : "Digital Archive processing.";
+        document.getElementById('detail-meaning').innerText = entry ? entry.meaning_cn : "待整理";
+        document.getElementById('detail-langs').innerText = entry ? `${entry.meaning_en} / ${entry.meaning_de || '-'}` : "U+" + id;
+        document.getElementById('detail-desc').innerText = entry ? (entry.description || "Digital Archive processing.") : "Archiving details from Zhao Liming's Nushu Guide.";
         
         // 艺术家填充逻辑
+        let artistBox = document.getElementById('artist-box');
         if (entry && entry.artist) {
-            document.getElementById('artist-box').style.display = 'block';
+            artistBox.style.display = 'block';
             document.getElementById('artist-name').innerText = entry.artist.name;
             document.getElementById('artist-bio').innerText = entry.artist.bio;
-            document.getElementById('artist-img').src = entry.artist.image_url;
+            document.getElementById('artist-img').src = entry.artist.image_url || "";
         } else {
-            document.getElementById('artist-box').style.display = 'none';
+            artistBox.style.display = 'none';
         }
         
         document.getElementById('detail-panel').style.display = 'block';
     }
 
     function windowResized() {
-        resizeCanvas(min(windowWidth * 0.9, 1100), 850);
+        resizeCanvas(min(windowWidth * 0.95, 1200), 880);
     }
 </script>
 </body>
