@@ -17,6 +17,7 @@
             --ink-main: #2C2C2C;
             --rouge: #B03A38;
             --petal: #E8D3D1;
+            --sand-color: #D1BFAe; /* 流沙的颜色 */
         }
 
         body {
@@ -25,7 +26,9 @@
             margin: 0;
             font-family: 'PingFang SC', 'Helvetica Neue', sans-serif;
             overflow-x: hidden;
-            background-image: radial-gradient(circle at 50% 20%, rgba(176, 58, 56, 0.02) 0%, transparent 70%);
+            /* 背景加入一点细微的纹理感 */
+            background-image: radial-gradient(circle at 50% 20%, rgba(176, 58, 56, 0.02) 0%, transparent 70%),
+                              url('data:image/svg+xml;utf8,<svg width="4" height="4" viewBox="0 0 4 4" xmlns="http://www.w3.org/2000/svg"><rect width="4" height="4" fill="none"/><circle cx="2" cy="2" r="0.5" fill="%23D1BFAe" opacity="0.1"/></svg>');
         }
 
         header {
@@ -35,15 +38,17 @@
             justify-content: center;
             align-items: center;
             text-align: center;
+            position: relative;
+            z-index: 10;
         }
 
-        /* 标题：已彻底改回你确认的 1B22C */
         .main-title {
             font-family: 'NvshuSerif', serif !important;
             font-size: clamp(80px, 12vw, 120px); 
             color: var(--rouge);
             margin: 0;
             line-height: 1.2;
+            text-shadow: 0 5px 15px rgba(176, 58, 56, 0.1);
         }
 
         .sub-title {
@@ -64,36 +69,33 @@
         }
 
         .control-section {
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(10px);
             border: 1px solid var(--petal);
             border-radius: 50px;
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto 30px;
-            padding: 35px;
+            padding: 25px 35px;
             text-align: center;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
         }
 
         #nushu-search {
-            width: 85%;
+            width: 90%;
             padding: 15px 25px;
             border-radius: 30px;
             border: 1px solid var(--petal);
             background: rgba(255,255,255,0.8);
             outline: none;
             font-size: 14px;
-            margin-bottom: 25px;
+            text-align: center;
+            transition: all 0.3s;
         }
-
-        .upload-btn {
-            background: linear-gradient(135deg, var(--rouge), #D67A78);
-            color: white;
-            border: none;
-            padding: 12px 40px;
-            border-radius: 30px;
-            cursor: pointer;
-            letter-spacing: 2px;
-            font-size: 13px;
+        #nushu-search:focus {
+            border-color: var(--rouge);
+            box-shadow: 0 0 15px rgba(176, 58, 56, 0.1);
         }
 
         #detail-panel {
@@ -137,9 +139,18 @@
             letter-spacing: 1px;
             line-height: 2;
             border-top: 1px solid rgba(176, 58, 56, 0.05);
+            position: relative;
+            z-index: 10;
         }
 
-        #p5-container { width: 100%; display: flex; justify-content: center; cursor: crosshair; }
+        #p5-container { 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            cursor: crosshair; 
+            position: relative;
+            z-index: 1;
+        }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-paper); display: flex; justify-content: center; align-items: center; z-index: 9999; }
     </style>
 </head>
@@ -167,17 +178,13 @@
 </div>
 
 <header>
-    <!-- 已经改回 1B22C -->
     <div class="main-title">&#x1B181;&#x1B22C;</div>
     <div class="sub-title">数字档案馆<span class="lang-en">Nüshu Digital Archive</span></div>
 </header>
 
 <div class="control-section">
-    <input type="text" id="nushu-search" placeholder="搜索含义、拼音或英文 (Search / Suche)...">
-    <br>
-    <div style="font-size:0.85rem; color:#888; letter-spacing:3px; margin-bottom:15px; margin-top:10px;">识图寻踪 / IMAGE RECOGNITION</div>
-    <input type="file" id="img-upload" hidden accept="image/*">
-    <button class="upload-btn" onclick="startRecognition()">UPLOAD & SCAN</button>
+    <div style="font-size:0.85rem; color:#888; letter-spacing:3px; margin-bottom:12px;">搜索索引 / SEARCH INDEX</div>
+    <input type="text" id="nushu-search" placeholder="输入汉字、拼音或英文 (Search / Suche)...">
 </div>
 
 <div id="p5-container"></div>
@@ -191,8 +198,9 @@
     let nushuFont, nushuData = [], chars = [];
     let cols = 24, rows = 17; 
     let searchQuery = "";
-    let isScanning = false;
-    let scanY = 0;
+    
+    // 流沙粒子数组
+    let particles = [];
 
     function preload() {
         nushuFont = loadFont('fonts/NyushuSerif-1.000.ttf', () => {
@@ -208,8 +216,7 @@
     }
 
     function setup() {
-        let w = min(windowWidth * 0.90, 1200);
-        // 画布拉高到 1100，让行距更宽
+        let w = min(windowWidth * 0.95, 1200);
         let cnv = createCanvas(w, 1100); 
         cnv.parent('p5-container');
         if (nushuFont) textFont(nushuFont);
@@ -218,36 +225,35 @@
         for (let i = 0; i < 396; i++) {
             chars.push(String.fromCodePoint(0x1B170 + i));
         }
+
+        // 初始化流沙粒子
+        for(let i = 0; i < 200; i++){
+            particles.push(new Particle());
+        }
         
         document.getElementById('nushu-search').addEventListener('input', (e) => {
             searchQuery = e.target.value.toLowerCase();
         });
     }
 
-    function startRecognition() {
-        document.getElementById('img-upload').click();
-        document.getElementById('img-upload').onchange = () => {
-            isScanning = true;
-            scanY = 0;
-            setTimeout(() => {
-                isScanning = false;
-                alert("识别完成：视觉算法已匹配相关女书字符。");
-            }, 3000); 
-        };
-    }
-
     function draw() {
         clear();
         
         let padX = 40;
-        // 增加上下留白，配合拉长的画布高度，让矩阵更有呼吸感
         let padY = 60; 
         let drawW = width - padX * 2;
         let drawH = height - padY * 2;
         
         let cellSizeW = drawW / cols;
         let cellSizeH = drawH / rows;
+
+        // 1. 渲染背景流沙粒子
+        for(let i = 0; i < particles.length; i++){
+            particles[i].update();
+            particles[i].display();
+        }
         
+        // 2. 渲染女书字符
         for (let i = 0; i < chars.length; i++) {
             let x = i % cols;
             let y = floor(i / cols);
@@ -257,43 +263,45 @@
             let d = dist(mouseX, mouseY, tx, ty);
             let hexID = (0x1B170 + i).toString(16).toUpperCase();
             
-            let isHighlight = false;
-            
+            let isSearchMatch = false;
             if (searchQuery.length > 0 && nushuData.length > 0) {
                 let entry = Object.values(nushuData).find(item => item.id === hexID);
-                if (entry) {
-                    if (entry.meaning_cn.includes(searchQuery) || 
-                        (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)) ||
-                        (entry.meaning_de && entry.meaning_de.toLowerCase().includes(searchQuery))) {
-                        isHighlight = true;
-                    }
+                if (entry && (entry.meaning_cn.includes(searchQuery) || 
+                   (entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery)) ||
+                   (entry.meaning_de && entry.meaning_de.toLowerCase().includes(searchQuery)))) {
+                    isSearchMatch = true;
                 }
             }
 
-            if (isScanning && abs(ty - scanY) < 40) {
-                isHighlight = true;
-            }
+            // 判断鼠标是否悬停在当前字符上 (精度提高)
+            let isHovered = (d < cellSizeW / 2);
 
-            let n = noise(x * 0.1, y * 0.1, frameCount * 0.01);
-            let off = map(d, 0, 250, 15, 0, true);
+            let n = noise(x * 0.1, y * 0.1, frameCount * 0.005);
+            // 鼠标靠近时，沙化漂浮效果减弱，字归位
+            let drift = isHovered ? 0 : map(d, 0, 300, 20, 0, true);
             
-            if (isHighlight) {
+            if (isSearchMatch) {
+                // 搜索匹配：胭脂红，放大
                 fill(176, 58, 56);
                 textSize(cellSizeW * 1.15); 
+            } else if (isHovered) {
+                // 鼠标强烈悬停：颜色加深，急剧放大，显示极高的清晰度
+                fill(176, 58, 56, 255);
+                textSize(cellSizeW * 1.4); 
+                // 添加细微的阴影效果模拟浮出纸面
+                drawingContext.shadowBlur = 15;
+                drawingContext.shadowColor = 'rgba(176, 58, 56, 0.4)';
             } else {
-                fill(176, 58, 56, map(d, 0, 350, 255, 30, true));
+                // 默认流沙状态：透明度降低，随波逐流
+                let baseAlpha = map(d, 0, 400, 200, 30, true);
+                fill(176, 58, 56, baseAlpha);
                 textSize(cellSizeW * 0.85);
+                drawingContext.shadowBlur = 0; // 取消阴影
             }
-            text(chars[i], tx + cos(n * TWO_PI) * off, ty + sin(n * TWO_PI) * off);
-        }
 
-        if (isScanning) {
-            stroke(176, 58, 56, 120);
-            strokeWeight(2);
-            line(padX, scanY, width - padX, scanY);
-            scanY += 6;
-            if (scanY > height) scanY = 0;
-            noStroke();
+            // 绘制字符
+            text(chars[i], tx + cos(n * TWO_PI) * drift, ty + sin(n * TWO_PI) * drift);
+            drawingContext.shadowBlur = 0; // 重置阴影避免影响其他元素
         }
     }
 
@@ -307,6 +315,7 @@
             let tx = padX + x * cellSizeW + cellSizeW / 2;
             let ty = padY + y * cellSizeH + cellSizeH / 2;
             
+            // 增加点击命中区域
             if (dist(mouseX, mouseY, tx, ty) < cellSizeW / 1.5) {
                 let hexID = (0x1B170 + i).toString(16).toUpperCase();
                 showDetail(hexID, chars[i]);
@@ -336,7 +345,49 @@
     }
 
     function windowResized() {
-        resizeCanvas(min(windowWidth * 0.90, 1200), 1100);
+        resizeCanvas(min(windowWidth * 0.95, 1200), 1100);
+    }
+
+    // --- 流沙粒子类 ---
+    class Particle {
+        constructor() {
+            this.x = random(width);
+            this.y = random(height);
+            this.vx = random(-0.2, 0.2);
+            this.vy = random(-0.5, 0.1); // 模拟沙子微微向下飘
+            this.size = random(0.5, 2.5);
+            this.alpha = random(50, 150);
+        }
+
+        update() {
+            // 受柏林噪声影响，产生流沙感
+            let n = noise(this.x * 0.005, this.y * 0.005, frameCount * 0.002);
+            let angle = n * TWO_PI * 2;
+            
+            // 鼠标磁吸效果：当鼠标靠近时，沙粒会有轻微的避让或环绕
+            let d = dist(mouseX, mouseY, this.x, this.y);
+            if(d < 150 && mouseX > 0 && mouseY > 0) {
+                let force = map(d, 0, 150, 0.5, 0);
+                this.x -= (mouseX - this.x) * force * 0.01;
+                this.y -= (mouseY - this.y) * force * 0.01;
+            }
+
+            this.x += cos(angle) * 0.5 + this.vx;
+            this.y += sin(angle) * 0.5 + this.vy;
+
+            // 越界重置
+            if (this.x < 0) this.x = width;
+            if (this.x > width) this.x = 0;
+            if (this.y < 0) this.y = height;
+            if (this.y > height) this.y = 0;
+        }
+
+        display() {
+            noStroke();
+            // 使用温暖的流沙色
+            fill(209, 191, 174, this.alpha);
+            ellipse(this.x, this.y, this.size);
+        }
     }
 </script>
 </body>
