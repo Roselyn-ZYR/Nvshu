@@ -29,12 +29,426 @@
                               url('data:image/svg+xml;utf8,<svg width="4" height="4" viewBox="0 0 4 4" xmlns="http://www.w3.org/2000/svg"><rect width="4" height="4" fill="none"/><circle cx="2" cy="2" r="0.5" fill="%23D1BFAe" opacity="0.1"/></svg>');
         }
 
+        /* 强行切断 Canvas 调用系统任何黑体、宋体汉字的可能 */
         canvas {
-            font-family: 'NvshuSerif' !important;
+            font-family: 'NvshuSerif', serif !important;
         }
 
         header {
             height: 35vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .main-title {
+            font-family: 'NvshuSerif', serif !important;
+            font-size: clamp(80px, 12vw, 120px); 
+            color: var(--rouge);
+            margin: 0;
+            line-height: 1.2;
+            text-shadow: 0 5px 15px rgba(176, 58, 56, 0.1);
+        }
+
+        .sub-title {
+            margin-top: 15px;
+            letter-spacing: 10px;
+            color: #4A4A4A;
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        .lang-en {
+            display: block;
+            font-size: 0.8rem;
+            letter-spacing: 5px;
+            color: #999;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .control-section {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--petal);
+            border-radius: 50px;
+            max-width: 500px;
+            margin: 0 auto 30px;
+            padding: 25px 35px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        }
+
+        #nushu-search {
+            width: 90%;
+            padding: 15px 25px;
+            border-radius: 30px;
+            border: 1px solid var(--petal);
+            background: rgba(255,255,255,0.8);
+            outline: none;
+            font-size: 14px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        #nushu-search:focus {
+            border-color: var(--rouge);
+            box-shadow: 0 0 15px rgba(176, 58, 56, 0.1);
+        }
+
+        #detail-panel {
+            display: none;
+            position: fixed;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 320px;
+            background: rgba(250, 246, 242, 0.98);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--petal);
+            padding: 40px;
+            border-radius: 40px;
+            box-shadow: 0 40px 80px rgba(176, 58, 56, 0.15);
+            z-index: 1001;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        #detail-char { font-family: 'NvshuSerif'; font-size: 110px; color: var(--rouge); text-align: center; line-height: 1.1; }
+        .detail-label { font-size: 10px; color: #AAA; letter-spacing: 2px; margin-top: 20px; text-transform: uppercase; border-bottom: 1px solid rgba(176,58,56,0.1); padding-bottom: 3px; }
+        .detail-value { font-size: 16px; color: var(--ink-main); margin: 6px 0; line-height: 1.4; }
+        #detail-meaning { font-size: 24px; font-weight: 500; color: var(--ink-main); }
+        #detail-pinyin { font-size: 18px; color: #B03A38; font-weight: bold; }
+
+        #artist-box {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--petal);
+            animation: fadeIn 1s;
+        }
+        .artist-img { width: 100%; border-radius: 15px; filter: grayscale(1); transition: 0.5s; margin-top: 10px; }
+        .artist-img:hover { filter: grayscale(0); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        footer {
+            margin-top: 60px; 
+            padding: 80px 20px;
+            text-align: center;
+            font-size: 11px;
+            color: #BBB;
+            letter-spacing: 1px;
+            line-height: 2;
+            border-top: 1px solid rgba(176, 58, 56, 0.05);
+            position: relative;
+            z-index: 10;
+        }
+
+        #p5-container { 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            cursor: crosshair; 
+            position: relative;
+            z-index: 1;
+        }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-paper); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.8s; }
+    </style>
+</head>
+<body>
+
+<div id="loading">
+    <div style="color:var(--rouge); letter-spacing:4px;">ARCHIVE LOADING...</div>
+</div>
+
+<div id="detail-panel">
+    <div onclick="this.parentElement.style.display='none'" style="cursor:pointer; float:right; color:#AAA; font-size:20px;">✕</div>
+    <div id="detail-char"></div>
+    
+    <div class="detail-label">Jiangyong Pronunciation / 方言发音</div>
+    <div id="detail-pinyin" class="detail-value"></div>
+    
+    <div class="detail-label">Chinese Hanzi / 对应汉字</div>
+    <div id="detail-meaning" class="detail-value"></div>
+    
+    <div class="detail-label">English Definition / 英文释义</div>
+    <div id="detail-english" class="detail-value" style="font-style: italic; color: #555;"></div>
+    
+    <div class="detail-label">Deutsch Übersetzung / 德语翻译</div>
+    <div id="detail-deutsch" class="detail-value" style="font-style: italic; color: #555;"></div>
+    
+    <div class="detail-label">Context / Archive Description</div>
+    <div id="detail-desc" style="font-size:13px; line-height:1.6; color:#666; margin-top:5px;"></div>
+
+    <div id="artist-box">
+        <div class="detail-label" style="color:var(--rouge); border:none;">✨ Creative Power / 艺术力量</div>
+        <img id="artist-img" class="artist-img" src="" alt="Artist">
+        <div id="artist-name" style="font-weight: bold; margin-top: 10px;"></div>
+        <div id="artist-bio" style="font-size: 12px; color: #888; margin-top: 5px; line-height: 1.4;"></div>
+    </div>
+</div>
+
+<header>
+    <div class="main-title">&#x1B181;&#x1B22C;</div>
+    <div class="sub-title">数字档案馆<span class="lang-en">Nüshu Digital Archive</span></div>
+</header>
+
+<div class="control-section">
+    <div style="font-size:0.85rem; color:#888; letter-spacing:3px; margin-bottom:12px;">搜索索引 / SEARCH INDEX</div>
+    <input type="text" id="nushu-search" placeholder="输入汉字、完整拼音或英德词汇...">
+</div>
+
+<div id="p5-container"></div>
+
+<footer>
+    Supported by <strong>Frauenförderfonds</strong> of Bauhaus-Universität Weimar<br>
+    Media Architecture Project
+</footer>
+
+<script>
+    let nushuData = []; 
+    let cols = 24, rows = 17; 
+    let searchQuery = "";
+    let particles = [];
+    let isTyping = false; // 判断用户是否正在拼写输入
+
+    function preload() {
+        loadJSON('nushu_data.json', (data) => { 
+            nushuData = Array.isArray(data) ? data : Object.values(data); 
+        });
+    }
+
+    function setup() {
+        let w = min(windowWidth * 0.95, 1200);
+        let cnv = createCanvas(w, 1350); 
+        cnv.parent('p5-container');
+        
+        textFont('NvshuSerif'); 
+        textAlign(CENTER, CENTER);
+
+        for(let i = 0; i < 250; i++){ particles.push(new Particle()); }
+
+        if (document.fonts) {
+            document.fonts.ready.then(function() {
+                let loading = document.getElementById('loading');
+                if(loading) {
+                    loading.style.opacity = '0';
+                    setTimeout(() => loading.remove(), 800);
+                }
+            });
+        }
+        
+        let searchInput = document.getElementById('nushu-search');
+        
+        // 监听输入法合成事件：当用户正在打拼音字母、还没选词时，标记为正在输入，不触发搜索
+        searchInput.addEventListener('compositionstart', () => { isTyping = true; });
+        searchInput.addEventListener('compositionend', (e) => { 
+            isTyping = false; 
+            searchQuery = e.target.value.trim().toLowerCase();
+        });
+        
+        searchInput.addEventListener('input', (e) => {
+            if (!isTyping) {
+                searchQuery = e.target.value.trim().toLowerCase();
+            }
+        });
+    }
+
+    function draw() {
+        clear();
+        
+        let padX = 40;
+        let padY = 80; 
+        let drawW = width - padX * 2;
+        let drawH = height - padY * 2;
+        
+        let cellSizeW = drawW / cols;
+        let cellSizeH = drawH / rows;
+
+        for(let i = 0; i < particles.length; i++){
+            particles[i].update();
+            particles[i].display();
+        }
+
+        if (nushuData.length === 0) return;
+
+        let closestIndex = -1;
+        let minDistance = 999999;
+        
+        for (let i = 0; i < nushuData.length; i++) {
+            let x = i % cols, y = floor(i / cols);
+            let tx = padX + x * cellSizeW + cellSizeW / 2;
+            let ty = padY + y * cellSizeH + cellSizeH / 2;
+            let d = dist(mouseX, mouseY, tx, ty);
+            if (d < minDistance) {
+                minDistance = d;
+                closestIndex = i;
+            }
+        }
+        
+        let activeDrawParams = null;
+
+        for (let i = 0; i < nushuData.length; i++) {
+            let entry = nushuData[i];
+            let x = i % cols;
+            let y = floor(i / cols);
+            
+            let tx = padX + x * cellSizeW + cellSizeW / 2;
+            let ty = padY + y * cellSizeH + cellSizeH / 2;
+            let d = dist(mouseX, mouseY, tx, ty);
+            
+            // ✨ 优化后的高级精准检索算法：不拆分字母，杜绝无关字误亮
+            let isSearchMatch = false;
+            // 只有当用户没有在拼写中，且输入内容长度大于0时才执行匹配高亮
+            if (!isTyping && searchQuery.length > 0) {
+                let cnMatch = entry.meaning_cn && entry.meaning_cn.includes(searchQuery);
+                let pyMatch = entry.pinyin && entry.pinyin.toLowerCase() === searchQuery; // 拼音精确整词匹配，防止输入i把所有带i的字全点亮
+                let enMatch = entry.meaning_en && entry.meaning_en.toLowerCase().split(' / ').includes(searchQuery);
+                let deMatch = entry.meaning_de && entry.meaning_de.toLowerCase().split(' / ').includes(searchQuery);
+                
+                // 模糊包容：如果精确匹配没找到，再降级为包含匹配，但必须长度大于2防止碎字母污染
+                if (!pyMatch && entry.pinyin) pyMatch = searchQuery.length > 1 && entry.pinyin.toLowerCase().includes(searchQuery);
+                if (!enMatch && entry.meaning_en) enMatch = searchQuery.length > 2 && entry.meaning_en.toLowerCase().includes(searchQuery);
+                if (!deMatch && entry.meaning_de) deMatch = searchQuery.length > 2 && entry.meaning_de.toLowerCase().includes(searchQuery);
+
+                if (cnMatch || pyMatch || enMatch || deMatch) {
+                    isSearchMatch = true;
+                }
+            }
+
+            let n = noise(x * 0.1, y * 0.1, frameCount * 0.005);
+            
+            if (i === closestIndex && minDistance < cellSizeW * 1.5 && mouseX > 0 && mouseY > 0) {
+                activeDrawParams = { entry: entry, tx: tx, ty: ty, isSearchMatch: isSearchMatch };
+                continue; 
+            }
+
+            push(); 
+            // 【关键修复】：彻底放弃 Opentype 多边形解算，在底层完全交给 Canvas 原生核心以最高分辨率绘制女书，汉字绝不露头
+            drawingContext.font = `${floor(isSearchMatch ? cellSizeW * 1.35 : (d < 350 && mouseX > 0 && mouseY > 0 ? cellSizeW * 0.9 : cellSizeW * 0.72))}px NvshuSerif`;
+            drawingContext.fillStyle = isSearchMatch ? 'rgba(176, 58, 56, 1)' : (d < 350 && mouseX > 0 && mouseY > 0 ? `rgba(176, 58, 56, ${map(d, 0, 350, 0.9, 0.2)})` : 'rgba(176, 58, 56, 0.15)');
+            drawingContext.textAlign = 'center';
+            drawingContext.textBaseline = 'middle';
+            
+            if (isSearchMatch) {
+                drawingContext.shadowBlur = 15;
+                drawingContext.shadowColor = 'rgba(176, 58, 56, 0.5)';
+            }
+
+            let drift = (isSearchMatch || isTyping) ? 0 : map(d, 0, 350, 15, 0, true);
+            let finalX = Math.round(tx + cos(n * TWO_PI) * drift);
+            let finalY = Math.round(ty + sin(n * TWO_PI) * drift);
+            
+            // 使用系统原生绘制指令绘制，保护字形不旋转变形
+            drawingContext.fillText(entry.char, finalX, finalY);
+            pop(); 
+        }
+
+        // 第二阶段：顶层悬停焦点字渲染
+        if (activeDrawParams) {
+            push();
+            drawingContext.font = `bold ${floor(cellSizeW * 1.6)}px NvshuSerif`;
+            drawingContext.fillStyle = 'rgba(176, 58, 56, 1)';
+            drawingContext.textAlign = 'center';
+            drawingContext.textBaseline = 'middle';
+            
+            drawingContext.shadowBlur = 25; 
+            drawingContext.shadowColor = 'rgba(176, 58, 56, 0.6)';
+            
+            drawingContext.fillText(activeDrawParams.entry.char, activeDrawParams.tx, activeDrawParams.ty);
+            pop();
+        }
+    }
+
+    function mousePressed() {
+        let padX = 40, padY = 80;
+        let drawW = width - padX * 2, drawH = height - padY * 2;
+        let cellSizeW = drawW / cols, cellSizeH = drawH / rows;
+        
+        if (nushuData.length === 0) return;
+
+        for (let i = 0; i < nushuData.length; i++) {
+            let x = i % cols, y = floor(i / cols);
+            let tx = padX + x * cellSizeW + cellSizeW / 2;
+            let ty = padY + y * cellSizeH + cellSizeH / 2;
+            
+            if (dist(mouseX, mouseY, tx, ty) < cellSizeW / 1.2) {
+                showDetail(nushuData[i]);
+                break;
+            }
+        }
+    }
+
+    function showDetail(entry) {
+        document.getElementById('detail-char').innerText = entry.char;
+        document.getElementById('detail-pinyin').innerText = entry.pinyin ? `[ ${entry.pinyin} ]` : "暂无音标";
+        document.getElementById('detail-meaning').innerText = entry.meaning_cn ? entry.meaning_cn : "待整理";
+        
+        document.getElementById('detail-english').innerText = entry.meaning_en ? entry.meaning_en : "None";
+        document.getElementById('detail-deutsch').innerText = entry.meaning_de ? entry.meaning_de : "Keine";
+        
+        document.getElementById('detail-desc').innerText = entry.description ? entry.description : "Digital Archive processing.";
+        
+        let artistBox = document.getElementById('artist-box');
+        if (entry.artist) {
+            artistBox.style.display = 'block';
+            document.getElementById('artist-name').innerText = entry.artist.name;
+            document.getElementById('artist-bio').innerText = entry.artist.bio;
+            document.getElementById('artist-img').src = entry.artist.image_url || "";
+        } else {
+            artistBox.style.display = 'none';
+        }
+        
+        document.getElementById('detail-panel').style.display = 'block';
+    }
+
+    function windowResized() {
+        resizeCanvas(min(windowWidth * 0.95, 1200), 1350);
+    }
+
+    class Particle {
+        constructor() {
+            this.x = random(width);
+            this.y = random(height);
+            this.vx = random(-0.2, 0.2);
+            this.vy = random(-0.4, 0.1); 
+            this.size = random(0.5, 2.5);
+            this.alpha = random(40, 130);
+        }
+
+        update() {
+            let n = noise(this.x * 0.005, this.y * 0.005, frameCount * 0.002);
+            let angle = n * TWO_PI * 2;
+            
+            let d = dist(mouseX, mouseY, this.x, this.y);
+            if(d < 150 && mouseX > 0 && mouseY > 0) {
+                let force = map(d, 0, 150, 0.5, 0);
+                this.x -= (mouseX - this.x) * force * 0.01;
+                this.y -= (mouseY - this.y) * force * 0.01;
+            }
+
+            this.x += cos(angle) * 0.5 + this.vx;
+            this.y += sin(angle) * 0.5 + this.vy;
+
+            if (this.x < 0) this.x = width;
+            if (this.x > width) this.x = 0;
+            if (this.y < 0) this.y = height;
+            if (this.y > height) this.y = 0;
+        }
+
+        display() {
+            noStroke();
+            fill(209, 191, 174, this.alpha);
+            ellipse(this.x, this.y, this.size);
+        }
+    }
+</script>
+</body>
+</html>            height: 35vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
