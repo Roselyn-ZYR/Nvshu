@@ -17,7 +17,6 @@
             --ink-main: #2C2C2C;
             --rouge: #B03A38;
             --petal: #E8D3D1;
-            --sand-color: #D1BFAe; /* 流沙的颜色 */
         }
 
         body {
@@ -26,9 +25,13 @@
             margin: 0;
             font-family: 'PingFang SC', 'Helvetica Neue', sans-serif;
             overflow-x: hidden;
-            /* 背景加入一点细微的纹理感 */
             background-image: radial-gradient(circle at 50% 20%, rgba(176, 58, 56, 0.02) 0%, transparent 70%),
                               url('data:image/svg+xml;utf8,<svg width="4" height="4" viewBox="0 0 4 4" xmlns="http://www.w3.org/2000/svg"><rect width="4" height="4" fill="none"/><circle cx="2" cy="2" r="0.5" fill="%23D1BFAe" opacity="0.1"/></svg>');
+        }
+
+        /* 强行切断 Canvas 调用系统默认汉字字体的后路 */
+        canvas {
+            font-family: 'NvshuSerif' !important;
         }
 
         header {
@@ -151,10 +154,14 @@
             position: relative;
             z-index: 1;
         }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-paper); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-paper); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.8s; }
     </style>
 </head>
 <body>
+
+<div style="font-family: 'NvshuSerif' !important; position: absolute; visibility: hidden; pointer-events: none;">
+    &#x1B170;&#x1B17A;&#x1B180;&#x1B181;&#x1B182;&#x1B22C;
+</div>
 
 <div id="loading">
     <div style="color:var(--rouge); letter-spacing:4px;">ARCHIVE LOADING...</div>
@@ -195,65 +202,83 @@
 </footer>
 
 <script>
-    let nushuFont, nushuData = [], chars = [];
+    let nushuData = [], chars = [];
     let cols = 24, rows = 17; 
     let searchQuery = "";
-    
-    // 流沙粒子数组
     let particles = [];
 
     function preload() {
-        nushuFont = loadFont('fonts/NyushuSerif-1.000.ttf', () => {
-            document.getElementById('loading').style.opacity = '0';
-            setTimeout(() => document.getElementById('loading').remove(), 800);
-        });
-        
-        loadJSON('nushu_data.json', (data) => {
-            nushuData = data;
-        }, (err) => {
-            console.log("Waiting for JSON data upload.");
-        });
+        // 彻底移除了 loadFont，防止 P5.js 的底层解析器将复杂的字体结构算错并扭曲
+        loadJSON('nushu_data.json', (data) => { nushuData = data; });
     }
 
     function setup() {
         let w = min(windowWidth * 0.95, 1200);
-        let cnv = createCanvas(w, 1100); 
+        let cnv = createCanvas(w, 1350); 
         cnv.parent('p5-container');
-        if (nushuFont) textFont(nushuFont);
+        
+        // 强制使用系统原生的字体渲染引擎
+        textFont('NvshuSerif'); 
         textAlign(CENTER, CENTER);
         
         for (let i = 0; i < 396; i++) {
             chars.push(String.fromCodePoint(0x1B170 + i));
         }
 
-        // 初始化流沙粒子
-        for(let i = 0; i < 200; i++){
-            particles.push(new Particle());
+        for(let i = 0; i < 250; i++){ particles.push(new Particle()); }
+
+        // 等待浏览器的底层把真实的矢量字体下载并处理完毕，再关闭加载动画
+        if (document.fonts) {
+            document.fonts.ready.then(function() {
+                let loading = document.getElementById('loading');
+                if(loading) {
+                    loading.style.opacity = '0';
+                    setTimeout(() => loading.remove(), 800);
+                }
+            });
+        } else {
+            setTimeout(() => {
+                let loading = document.getElementById('loading');
+                if(loading) {
+                    loading.style.opacity = '0';
+                    setTimeout(() => loading.remove(), 800);
+                }
+            }, 1500);
         }
-        
-        document.getElementById('nushu-search').addEventListener('input', (e) => {
-            searchQuery = e.target.value.toLowerCase();
-        });
     }
 
     function draw() {
         clear();
         
         let padX = 40;
-        let padY = 60; 
+        let padY = 80; 
         let drawW = width - padX * 2;
         let drawH = height - padY * 2;
         
         let cellSizeW = drawW / cols;
         let cellSizeH = drawH / rows;
 
-        // 1. 渲染背景流沙粒子
         for(let i = 0; i < particles.length; i++){
             particles[i].update();
             particles[i].display();
         }
+
+        let closestIndex = -1;
+        let minDistance = 999999;
         
-        // 2. 渲染女书字符
+        for (let i = 0; i < chars.length; i++) {
+            let x = i % cols, y = floor(i / cols);
+            let tx = padX + x * cellSizeW + cellSizeW / 2;
+            let ty = padY + y * cellSizeH + cellSizeH / 2;
+            let d = dist(mouseX, mouseY, tx, ty);
+            if (d < minDistance) {
+                minDistance = d;
+                closestIndex = i;
+            }
+        }
+        
+        let activeDrawParams = null;
+
         for (let i = 0; i < chars.length; i++) {
             let x = i % cols;
             let y = floor(i / cols);
@@ -273,40 +298,54 @@
                 }
             }
 
-            // 判断鼠标是否悬停在当前字符上 (精度提高)
-            let isHovered = (d < cellSizeW / 2);
-
             let n = noise(x * 0.1, y * 0.1, frameCount * 0.005);
-            // 鼠标靠近时，沙化漂浮效果减弱，字归位
-            let drift = isHovered ? 0 : map(d, 0, 300, 20, 0, true);
             
-            if (isSearchMatch) {
-                // 搜索匹配：胭脂红，放大
-                fill(176, 58, 56);
-                textSize(cellSizeW * 1.15); 
-            } else if (isHovered) {
-                // 鼠标强烈悬停：颜色加深，急剧放大，显示极高的清晰度
-                fill(176, 58, 56, 255);
-                textSize(cellSizeW * 1.4); 
-                // 添加细微的阴影效果模拟浮出纸面
-                drawingContext.shadowBlur = 15;
-                drawingContext.shadowColor = 'rgba(176, 58, 56, 0.4)';
-            } else {
-                // 默认流沙状态：透明度降低，随波逐流
-                let baseAlpha = map(d, 0, 400, 200, 30, true);
-                fill(176, 58, 56, baseAlpha);
-                textSize(cellSizeW * 0.85);
-                drawingContext.shadowBlur = 0; // 取消阴影
+            if (i === closestIndex && minDistance < cellSizeW * 1.5 && mouseX > 0 && mouseY > 0) {
+                activeDrawParams = { char: chars[i], tx: tx, ty: ty, hexID: hexID, isSearchMatch: isSearchMatch };
+                continue; 
             }
 
-            // 绘制字符
-            text(chars[i], tx + cos(n * TWO_PI) * drift, ty + sin(n * TWO_PI) * drift);
-            drawingContext.shadowBlur = 0; // 重置阴影避免影响其他元素
+            push(); 
+            textFont('NvshuSerif'); // 每一帧都强制锁死字体引擎
+            
+            if (isSearchMatch) {
+                fill(176, 58, 56);
+                textSize(cellSizeW * 1.15); 
+            } else if (d < 350 && mouseX > 0 && mouseY > 0) {
+                let proximitySize = map(d, 0, 350, cellSizeW * 1.15, cellSizeW * 0.85);
+                let proximityAlpha = map(d, 0, 350, 240, 70);
+                fill(176, 58, 56, proximityAlpha);
+                textSize(proximitySize);
+            } else {
+                fill(176, 58, 56, 45);
+                textSize(cellSizeW * 0.85);
+            }
+
+            let drift = map(d, 0, 350, 15, 0, true);
+            // 强行把浮点数坐标转换为整数，这是杜绝字体拉伸扭曲的关键防线
+            let finalX = Math.round(tx + cos(n * TWO_PI) * drift);
+            let finalY = Math.round(ty + sin(n * TWO_PI) * drift);
+            
+            text(chars[i], finalX, finalY);
+            pop(); 
+        }
+
+        if (activeDrawParams) {
+            push();
+            textFont('NvshuSerif'); 
+            fill(176, 58, 56, 255); 
+            textSize(cellSizeW * 1.55); 
+            
+            drawingContext.shadowBlur = 25; 
+            drawingContext.shadowColor = 'rgba(176, 58, 56, 0.6)';
+            
+            text(activeDrawParams.char, activeDrawParams.tx, activeDrawParams.ty);
+            pop();
         }
     }
 
     function mousePressed() {
-        let padX = 40, padY = 60;
+        let padX = 40, padY = 80;
         let drawW = width - padX * 2, drawH = height - padY * 2;
         let cellSizeW = drawW / cols, cellSizeH = drawH / rows;
         
@@ -315,8 +354,7 @@
             let tx = padX + x * cellSizeW + cellSizeW / 2;
             let ty = padY + y * cellSizeH + cellSizeH / 2;
             
-            // 增加点击命中区域
-            if (dist(mouseX, mouseY, tx, ty) < cellSizeW / 1.5) {
+            if (dist(mouseX, mouseY, tx, ty) < cellSizeW / 1.2) {
                 let hexID = (0x1B170 + i).toString(16).toUpperCase();
                 showDetail(hexID, chars[i]);
                 break;
@@ -345,26 +383,23 @@
     }
 
     function windowResized() {
-        resizeCanvas(min(windowWidth * 0.95, 1200), 1100);
+        resizeCanvas(min(windowWidth * 0.95, 1200), 1350);
     }
 
-    // --- 流沙粒子类 ---
     class Particle {
         constructor() {
             this.x = random(width);
             this.y = random(height);
             this.vx = random(-0.2, 0.2);
-            this.vy = random(-0.5, 0.1); // 模拟沙子微微向下飘
+            this.vy = random(-0.4, 0.1); 
             this.size = random(0.5, 2.5);
-            this.alpha = random(50, 150);
+            this.alpha = random(40, 130);
         }
 
         update() {
-            // 受柏林噪声影响，产生流沙感
             let n = noise(this.x * 0.005, this.y * 0.005, frameCount * 0.002);
             let angle = n * TWO_PI * 2;
             
-            // 鼠标磁吸效果：当鼠标靠近时，沙粒会有轻微的避让或环绕
             let d = dist(mouseX, mouseY, this.x, this.y);
             if(d < 150 && mouseX > 0 && mouseY > 0) {
                 let force = map(d, 0, 150, 0.5, 0);
@@ -375,7 +410,6 @@
             this.x += cos(angle) * 0.5 + this.vx;
             this.y += sin(angle) * 0.5 + this.vy;
 
-            // 越界重置
             if (this.x < 0) this.x = width;
             if (this.x > width) this.x = 0;
             if (this.y < 0) this.y = height;
@@ -384,7 +418,6 @@
 
         display() {
             noStroke();
-            // 使用温暖的流沙色
             fill(209, 191, 174, this.alpha);
             ellipse(this.x, this.y, this.size);
         }
