@@ -169,8 +169,8 @@
 <div class="floating-bar">
     <a href="#" class="archive-brand">NÜSHU ARCHIVE</a>
     <div class="interactive-inputs">
-        <input type="text" id="nushu-search" class="minimal-input" placeholder="检索 (汉字/拼音/英德)...">
-        <input type="text" id="nushu-generator" class="minimal-input" placeholder="输入一句话直接生成女书...">
+        <input type="text" id="nushu-search" class="minimal-input" placeholder="检索Search (汉字Chinese/拼音PinYin/英English/德German)...">
+        <input type="text" id="nushu-generator" class="minimal-input" placeholder="输入一句话直接生成女书Searching Nüshu from your language...">
     </div>
 </div>
 
@@ -221,11 +221,21 @@
     let particles = [];
     let isTyping = false; 
 
-    function preload() {
-        loadJSON('nushu_data.json', (data) => { 
-            nushuData = Array.isArray(data) ? data : Object.values(data); 
-        });
-    }
+   function preload() {
+    // 增加路径容错，确保在任何环境下都能找到 JSON
+    let path = 'nushu_data.json';
+    loadJSON(path, 
+        (data) => { 
+            nushuData = Array.isArray(data) ? data : Object.values(data);
+            console.log("数据加载成功，共 " + nushuData.length + " 个字符");
+        },
+        (err) => {
+            console.error("数据加载失败，请检查路径: ", err);
+            // 失败时提示用户
+            document.getElementById('loading').innerText = "加载失败，请检查控制台(F12)";
+        }
+    );
+}
 
     function setup() {
         let w = min(windowWidth * 0.95, 1200);
