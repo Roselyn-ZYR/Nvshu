@@ -6,88 +6,166 @@
     <title>女书数字档案馆 | Nüshu Digital Archive</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
+        /* 🚨 请务必检查：GitHub 仓库中是否存在 fonts 文件夹，且字体文件名大小写与下方完全一致 */
         @font-face {
             font-family: 'NvshuSerif';
-            src: url('fonts/NyushuSerif-1.000.ttf') format('truetype');
-            font-display: block;
+            src: url('./fonts/NyushuSerif-1.000.ttf') format('truetype');
+            font-display: swap;
         }
+
         :root {
             --bg-paper: #FAF6F2;
             --ink-main: #2C2C2C;
             --rouge: #B03A38;
             --petal: #E8D3D1;
         }
+
         body {
             background-color: var(--bg-paper);
             color: var(--ink-main);
             margin: 0;
+            padding: 0;
             font-family: 'PingFang SC', 'Helvetica Neue', sans-serif;
             overflow-x: hidden;
             background-image: radial-gradient(circle at 50% 20%, rgba(176, 58, 56, 0.02) 0%, transparent 70%),
                               url('data:image/svg+xml;utf8,<svg width="4" height="4" viewBox="0 0 4 4" xmlns="http://www.w3.org/2000/svg"><rect width="4" height="4" fill="none"/><circle cx="2" cy="2" r="0.5" fill="%23D1BFAe" opacity="0.1"/></svg>');
         }
-        canvas { font-family: 'NvshuSerif' !important; margin-top: 15vh; }
+
+        canvas {
+            display: block;
+            font-family: 'NvshuSerif' !important;
+            margin: 15vh auto 0 auto; /* 居中画布，并为顶部导航留出空间 */
+        }
+
+        /* 👑 极简悬浮控制面板 */
         .floating-bar {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            width: 85%; max-width: 1000px;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 1000px;
             background: rgba(250, 246, 242, 0.75);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(232, 211, 209, 0.6); border-radius: 30px;
-            padding: 15px 30px; display: flex; justify-content: space-between;
-            align-items: center; z-index: 2000;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(232, 211, 209, 0.6);
+            border-radius: 30px;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2000;
             box-shadow: 0 15px 35px rgba(176, 58, 56, 0.05);
         }
+
         .archive-brand {
-            font-family: 'NvshuSerif', serif; color: var(--rouge);
-            font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; text-decoration: none;
+            font-family: 'NvshuSerif', serif;
+            color: var(--rouge);
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-decoration: none;
         }
-        .interactive-inputs { display: flex; gap: 15px; flex-grow: 1; justify-content: flex-end; margin-left: 40px; }
+
+        .interactive-inputs {
+            display: flex;
+            gap: 15px;
+            flex-grow: 1;
+            justify-content: flex-end;
+            margin-left: 40px;
+        }
+
         .minimal-input {
-            width: 40%; max-width: 300px; padding: 10px 20px; border-radius: 20px;
-            border: 1px solid var(--petal); background: rgba(255,255,255,0.6);
-            outline: none; font-size: 13px; transition: all 0.3s;
+            width: 40%;
+            max-width: 300px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid var(--petal);
+            background: rgba(255,255,255,0.6);
+            outline: none;
+            font-size: 13px;
+            transition: all 0.3s;
         }
-        .minimal-input:focus { border-color: var(--rouge); background: rgba(255,255,255,0.9); }
+        .minimal-input:focus {
+            border-color: var(--rouge);
+            background: rgba(255,255,255,0.9);
+        }
+
+        /* 📜 女书句子生成展示卷轴 */
         #sentence-canvas-box {
-            position: fixed; bottom: 40px; left: 40px;
-            background: rgba(255, 255, 255, 0.9); border-left: 4px solid var(--rouge);
-            padding: 20px 30px; border-radius: 4px 15px 15px 4px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.05); z-index: 1500;
-            display: none; max-width: 450px; animation: slideIn 0.4s ease-out;
+            position: fixed;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border-left: 4px solid var(--rouge);
+            padding: 20px 30px;
+            border-radius: 4px 15px 15px 4px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+            z-index: 1500;
+            display: none;
+            max-width: 450px;
+            animation: slideIn 0.4s ease-out;
         }
         @keyframes slideIn { from { transform: translateX(-30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
         #generated-sentence {
-            font-family: 'NvshuSerif' !important; font-size: 45px; color: var(--rouge);
-            margin-top: 10px; letter-spacing: 5px; white-space: nowrap; overflow-x: auto;
+            font-family: 'NvshuSerif' !important;
+            font-size: 45px;
+            color: var(--rouge);
+            margin-top: 10px;
+            letter-spacing: 5px;
+            white-space: nowrap;
+            overflow-x: auto;
         }
+
+        /* 详情面板保持右侧悬浮 */
         #detail-panel {
-            display: none; position: fixed; right: 40px; top: 50%; transform: translateY(-50%);
-            width: 300px; background: rgba(250, 246, 242, 0.98); backdrop-filter: blur(25px);
-            border: 1px solid var(--petal); padding: 35px; border-radius: 40px;
-            box-shadow: 0 40px 80px rgba(176, 58, 56, 0.12); z-index: 2001;
-            max-height: 80vh; overflow-y: auto;
+            display: none;
+            position: fixed;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 300px;
+            background: rgba(250, 246, 242, 0.98);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--petal);
+            padding: 35px;
+            border-radius: 40px;
+            box-shadow: 0 40px 80px rgba(176, 58, 56, 0.12);
+            z-index: 2001;
+            max-height: 80vh;
+            overflow-y: auto;
         }
+
         #detail-char { font-family: 'NvshuSerif'; font-size: 110px; color: var(--rouge); text-align: center; line-height: 1.1; }
         .detail-label { font-size: 10px; color: #AAA; letter-spacing: 2px; margin-top: 15px; text-transform: uppercase; border-bottom: 1px solid rgba(176,58,56,0.1); padding-bottom: 3px; }
         .detail-value { font-size: 15px; color: var(--ink-main); margin: 5px 0; line-height: 1.4; }
         #detail-meaning { font-size: 22px; font-weight: 500; color: var(--ink-main); }
         #detail-pinyin { font-size: 16px; color: #B03A38; font-weight: bold; }
+
         #artist-box { margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--petal); }
         .artist-img { width: 100%; border-radius: 12px; filter: grayscale(1); transition: 0.5s; margin-top: 8px; }
         .artist-img:hover { filter: grayscale(0); }
-        footer { padding: 60px 20px 40px; text-align: center; font-size: 11px; color: #BBB; letter-spacing: 1px; line-height: 2; position: relative; z-index: 10; }
-        #p5-container { width: 100%; display: flex; justify-content: center; cursor: crosshair; }
-        #loading {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-paper); display: flex; justify-content: center;
-            align-items: center; z-index: 9999; transition: opacity 0.8s;
+
+        footer {
+            padding: 60px 20px 40px;
+            text-align: center;
+            font-size: 11px;
+            color: #BBB;
+            letter-spacing: 1px;
+            line-height: 2;
+            position: relative;
+            z-index: 10;
         }
+
+        #p5-container { width: 100%; display: flex; justify-content: center; cursor: crosshair; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-paper); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s; }
     </style>
 </head>
 <body>
 
 <div id="loading">
-    <div style="color:var(--rouge); letter-spacing:4px;">ARCHIVE LOADING...</div>
+    <div style="color:var(--rouge); letter-spacing:4px; font-weight: bold;">ARCHIVE LOADING...</div>
 </div>
 
 <div class="floating-bar">
@@ -107,16 +185,22 @@
 <div id="detail-panel">
     <div onclick="this.parentElement.style.display='none'" style="cursor:pointer; float:right; color:#AAA; font-size:18px;">✕</div>
     <div id="detail-char"></div>
+    
     <div class="detail-label">Jiangyong Pronunciation / 方言发音</div>
     <div id="detail-pinyin" class="detail-value"></div>
+    
     <div class="detail-label">Chinese Hanzi / 对应汉字</div>
     <div id="detail-meaning" class="detail-value"></div>
+    
     <div class="detail-label">English Definition / 英文释义</div>
     <div id="detail-english" class="detail-value"></div>
+    
     <div class="detail-label">Deutsch Übersetzung / 德语翻译</div>
     <div id="detail-deutsch" class="detail-value"></div>
+    
     <div class="detail-label">Context / Archive Description</div>
     <div id="detail-desc" style="font-size:12px; line-height:1.5; color:#666; margin-top:4px;"></div>
+
     <div id="artist-box">
         <div class="detail-label" style="color:var(--rouge); border:none; margin-top:10px;">✨ Creative Power / 艺术力量</div>
         <img id="artist-img" class="artist-img" src="" alt="Artist">
@@ -133,178 +217,179 @@
 </footer>
 
 <script>
-    let nushuData = [];
-    let fontReady = false;
-    let dataReady = false;
-    let cols = 24, rows = 17;
+    let nushuData = []; 
+    let cols = 24, rows = 17; 
     let searchQuery = "";
     let particles = [];
-    let isTyping = false;
+    let isTyping = false; 
 
-    // ── 隐藏 loading ──────────────────────────────────
-    function hideLoading() {
+    // 强制关闭遮罩层的安全函数
+    function removeLoadingScreen() {
         let loading = document.getElementById('loading');
-        if (loading && loading.style.opacity !== '0') {
+        if(loading) {
             loading.style.opacity = '0';
-            setTimeout(() => { if (loading.parentNode) loading.remove(); }, 800);
-        }
-    }
-    // 兜底：最多 4 秒强制消失
-    setTimeout(hideLoading, 4000);
-
-    // ── 关键修复：用 FontFace API 强制加载字体 ────────
-    // CSS @font-face 只在文字实际渲染时才触发下载
-    // FontFace API 会立即开始下载，确保 canvas 能用
-    const nvshuFont = new FontFace('NvshuSerif', "url('fonts/NyushuSerif-1.000.ttf')");
-    nvshuFont.load()
-        .then(font => {
-            document.fonts.add(font);  // 注册到浏览器字体系统
-            fontReady = true;
-            console.log('字体加载成功');
-            checkReady();
-        })
-        .catch(err => {
-            console.warn('字体加载失败，使用系统字体:', err);
-            fontReady = true; // 失败也标记完成，不阻塞
-            checkReady();
-        });
-
-    // ── 用原生 fetch 加载数据 ─────────────────────────
-    fetch('nushu_data.json')
-        .then(res => {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.json();
-        })
-        .then(data => {
-            nushuData = Array.isArray(data) ? data : Object.values(data);
-            dataReady = true;
-            console.log('数据加载成功，共', nushuData.length, '条');
-            checkReady();
-        })
-        .catch(err => {
-            console.error('数据加载失败:', err);
-            dataReady = true; // 失败也标记，不阻塞
-            checkReady();
-        });
-
-    // 字体和数据都准备好才隐藏 loading
-    function checkReady() {
-        if (fontReady && dataReady) {
-            hideLoading();
+            setTimeout(() => loading.remove(), 500);
         }
     }
 
-    // ── p5.js ─────────────────────────────────────────
+    function preload() {
+        // 使用相对路径保护，确保 GitHub Pages 上正常加载
+        loadJSON('./nushu_data.json', (data) => { 
+            nushuData = Array.isArray(data) ? data : Object.values(data); 
+        }, (err) => {
+            console.error("🚨 无法加载 nushu_data.json，请检查根目录下文件是否存在！", err);
+        });
+    }
+
     function setup() {
         let w = min(windowWidth * 0.95, 1200);
-        let cnv = createCanvas(w, 1350);
+        let cnv = createCanvas(w, 1350); 
         cnv.parent('p5-container');
+        
+        textFont('NvshuSerif'); 
         textAlign(CENTER, CENTER);
-        for (let i = 0; i < 800; i++) { particles.push(new Particle()); }
 
+        // 初始化流沙星河粒子
+        for(let i = 0; i < 800; i++){ particles.push(new Particle()); }
+
+        // GitHub 优化版：监听字体加载状态，若 1.5 秒内由于网络阻碍未加载完，强制开屏避免假死
+        if (document.fonts) {
+            document.fonts.ready.then(removeLoadingScreen);
+        }
+        setTimeout(removeLoadingScreen, 1500); 
+        
+        // 搜索栏输入法保护
         let searchInput = document.getElementById('nushu-search');
         searchInput.addEventListener('compositionstart', () => { isTyping = true; });
-        searchInput.addEventListener('compositionend', (e) => {
-            isTyping = false;
+        searchInput.addEventListener('compositionend', (e) => { 
+            isTyping = false; 
             searchQuery = e.target.value.trim().toLowerCase();
         });
         searchInput.addEventListener('input', (e) => {
             if (!isTyping) searchQuery = e.target.value.trim().toLowerCase();
         });
 
+        // 实时长句女书生成器
         let generatorInput = document.getElementById('nushu-generator');
         generatorInput.addEventListener('input', (e) => {
             let text = e.target.value.trim();
             let box = document.getElementById('sentence-canvas-box');
             let charDisplay = document.getElementById('generated-sentence');
             let transDisplay = document.getElementById('generated-translation');
-            if (text.length === 0) { box.style.display = 'none'; return; }
+            
+            if (text.length === 0 || nushuData.length === 0) {
+                box.style.display = 'none';
+                return;
+            }
+            
             let resultChars = "";
             for (let targetChar of text) {
                 let found = nushuData.find(item => item.meaning_cn && item.meaning_cn.includes(targetChar));
-                resultChars += found ? found.char : " ﹒ ";
+                if (found) {
+                    resultChars += found.char;
+                } else {
+                    resultChars += " ﹒ "; 
+                }
             }
-            charDisplay.innerText = resultChars;
-            transDisplay.innerText = `" ${text} "`;
-            box.style.display = 'block';
+            
+            if(resultChars.length > 0) {
+                charDisplay.innerText = resultChars;
+                transDisplay.innerText = `“ ${text} ”`;
+                box.style.display = 'block';
+            }
         });
     }
 
     function draw() {
         clear();
-        let padX = 40, padY = 80;
+        
+        // 防御性保护：确保数据已经成功拉取再进行渲染，防止控制台爆红阻断 p5.js 引擎
+        if (!nushuData || nushuData.length === 0) return;
+
+        let padX = 40;
+        let padY = 80; 
         let drawW = width - padX * 2;
         let drawH = height - padY * 2;
+        
         let cellSizeW = drawW / cols;
         let cellSizeH = drawH / rows;
 
-        for (let i = 0; i < particles.length; i++) {
+        // 渲染背景流沙
+        for(let i = 0; i < particles.length; i++){
             particles[i].update();
             particles[i].display();
         }
 
-        if (!dataReady || nushuData.length === 0) return;
-
         let closestIndex = -1;
         let minDistance = 999999;
+        
+        // 寻找鼠标最近的字
         for (let i = 0; i < nushuData.length; i++) {
-            let tx = padX + (i % cols) * cellSizeW + cellSizeW / 2;
-            let ty = padY + floor(i / cols) * cellSizeH + cellSizeH / 2;
-            let d = dist(mouseX, mouseY, tx, ty);
-            if (d < minDistance) { minDistance = d; closestIndex = i; }
-        }
-
-        let activeDrawParams = null;
-
-        for (let i = 0; i < nushuData.length; i++) {
-            let entry = nushuData[i];
             let x = i % cols, y = floor(i / cols);
             let tx = padX + x * cellSizeW + cellSizeW / 2;
             let ty = padY + y * cellSizeH + cellSizeH / 2;
             let d = dist(mouseX, mouseY, tx, ty);
+            if (d < minDistance) {
+                minDistance = d;
+                closestIndex = i;
+            }
+        }
+        
+        let activeDrawParams = null;
 
+        // 循环渲染字形阵列
+        for (let i = 0; i < nushuData.length; i++) {
+            let entry = nushuData[i];
+            if (!entry || !entry.char) continue;
+
+            let x = i % cols;
+            let y = floor(i / cols);
+            
+            let tx = padX + x * cellSizeW + cellSizeW / 2;
+            let ty = padY + y * cellSizeH + cellSizeH / 2;
+            let d = dist(mouseX, mouseY, tx, ty);
+            
             let isSearchMatch = false;
             if (!isTyping && searchQuery.length > 0) {
                 let cnMatch = entry.meaning_cn && entry.meaning_cn.includes(searchQuery);
-                let pyMatch = entry.pinyin && entry.pinyin.toLowerCase().includes(searchQuery);
-                let enMatch = entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery);
-                let deMatch = entry.meaning_de && entry.meaning_de.toLowerCase().includes(searchQuery);
+                let pyMatch = entry.pinyin && entry.pinyin.toLowerCase() === searchQuery;
+                let enMatch = entry.meaning_en && entry.meaning_en.toLowerCase().split(' / ').includes(searchQuery);
+                let deMatch = entry.meaning_de && entry.meaning_de.toLowerCase().split(' / ').includes(searchQuery);
+                
+                if (!pyMatch && entry.pinyin) pyMatch = searchQuery.length > 1 && entry.pinyin.toLowerCase().includes(searchQuery);
+                if (!enMatch && entry.meaning_en) enMatch = searchQuery.length > 2 && entry.meaning_en.toLowerCase().includes(searchQuery);
+                if (!deMatch && entry.meaning_de) deMatch = searchQuery.length > 2 && entry.meaning_de.toLowerCase().includes(searchQuery);
+
                 if (cnMatch || pyMatch || enMatch || deMatch) isSearchMatch = true;
             }
 
             let n = noise(x * 0.1, y * 0.1, frameCount * 0.005);
-
+            
             if (i === closestIndex && minDistance < cellSizeW * 1.5 && mouseX > 0 && mouseY > 0) {
-                activeDrawParams = { entry, tx, ty, isSearchMatch };
-                continue;
+                activeDrawParams = { entry: entry, tx: tx, ty: ty, isSearchMatch: isSearchMatch };
+                continue; 
             }
 
-            push();
-            let currentSize = isSearchMatch
-                ? cellSizeW * 1.35
-                : (d < 350 && mouseX > 0 && mouseY > 0 ? cellSizeW * 0.9 : cellSizeW * 0.72);
-
-            // 用 fontReady 决定用哪个字体
-            drawingContext.font = `${floor(currentSize)}px ${fontReady ? 'NvshuSerif' : 'serif'}`;
-            drawingContext.fillStyle = isSearchMatch
-                ? 'rgba(176, 58, 56, 1)'
-                : (d < 350 && mouseX > 0 && mouseY > 0
-                    ? `rgba(176, 58, 56, ${map(d, 0, 350, 0.9, 0.2)})`
-                    : 'rgba(176, 58, 56, 0.15)');
+            push(); 
+            let currentSize = isSearchMatch ? cellSizeW * 1.35 : (d < 350 && mouseX > 0 && mouseY > 0 ? cellSizeW * 0.9 : cellSizeW * 0.72);
+            drawingContext.font = `${floor(currentSize)}px NvshuSerif`;
+            drawingContext.fillStyle = isSearchMatch ? 'rgba(176, 58, 56, 1)' : (d < 350 && mouseX > 0 && mouseY > 0 ? `rgba(176, 58, 56, ${map(d, 0, 350, 0.9, 0.2)})` : 'rgba(176, 58, 56, 0.15)');
             drawingContext.textAlign = 'center';
             drawingContext.textBaseline = 'middle';
 
             let drift = (isSearchMatch || isTyping) ? 0 : map(d, 0, 350, 20, 0, true);
-            drawingContext.fillText(entry.char,
-                Math.round(tx + cos(n * TWO_PI) * drift),
-                Math.round(ty + sin(n * TWO_PI) * drift));
-            pop();
+            let finalX = Math.round(tx + cos(n * TWO_PI) * drift);
+            let finalY = Math.round(ty + sin(n * TWO_PI) * drift);
+            
+            drawingContext.fillText(entry.char, finalX, finalY);
+            pop(); 
         }
 
+        // 顶层焦点交互文字渲染
         if (activeDrawParams) {
             push();
-            drawingContext.font = `bold ${floor(cellSizeW * 1.7)}px ${fontReady ? 'NvshuSerif' : 'serif'}`;
-            drawingContext.fillStyle = 'rgba(176, 58, 56, 1)';
+            drawingContext.font = `bold ${floor(cellSizeW * 1.7)}px NvshuSerif`;
+            drawingContext.fillStyle = 'rgba(176, 58, 56, 1)'; 
             drawingContext.textAlign = 'center';
             drawingContext.textBaseline = 'middle';
             drawingContext.fillText(activeDrawParams.entry.char, activeDrawParams.tx, activeDrawParams.ty);
@@ -313,12 +398,17 @@
     }
 
     function mousePressed() {
+        if (!nushuData || nushuData.length === 0) return;
+
         let padX = 40, padY = 80;
-        let cellSizeW = (width - padX * 2) / cols;
-        if (!dataReady || nushuData.length === 0) return;
+        let drawW = width - padX * 2, drawH = height - padY * 2;
+        let cellSizeW = drawW / cols, cellSizeH = drawH / rows;
+        
         for (let i = 0; i < nushuData.length; i++) {
-            let tx = padX + (i % cols) * cellSizeW + cellSizeW / 2;
-            let ty = padY + floor(i / cols) * ((height - padY * 2) / rows) + ((height - padY * 2) / rows) / 2;
+            let x = i % cols, y = floor(i / cols);
+            let tx = padX + x * cellSizeW + cellSizeW / 2;
+            let ty = padY + y * cellSizeH + cellSizeH / 2;
+            
             if (dist(mouseX, mouseY, tx, ty) < cellSizeW / 1.2) {
                 showDetail(nushuData[i]);
                 break;
@@ -327,21 +417,24 @@
     }
 
     function showDetail(entry) {
-        document.getElementById('detail-char').innerText = entry.char;
+        if(!entry) return;
+        document.getElementById('detail-char').innerText = entry.char || "";
         document.getElementById('detail-pinyin').innerText = entry.pinyin ? `[ ${entry.pinyin} ]` : "暂无音标";
-        document.getElementById('detail-meaning').innerText = entry.meaning_cn || "待整理";
-        document.getElementById('detail-english').innerText = entry.meaning_en || "None";
-        document.getElementById('detail-deutsch').innerText = entry.meaning_de || "Keine";
-        document.getElementById('detail-desc').innerText = entry.description || "Digital Archive processing.";
+        document.getElementById('detail-meaning').innerText = entry.meaning_cn ? entry.meaning_cn : "待整理";
+        document.getElementById('detail-english').innerText = entry.meaning_en ? entry.meaning_en : "None";
+        document.getElementById('detail-deutsch').innerText = entry.meaning_de ? entry.meaning_de : "Keine";
+        document.getElementById('detail-desc').innerText = entry.description ? entry.description : "Digital Archive processing.";
+        
         let artistBox = document.getElementById('artist-box');
         if (entry.artist) {
             artistBox.style.display = 'block';
-            document.getElementById('artist-name').innerText = entry.artist.name;
-            document.getElementById('artist-bio').innerText = entry.artist.bio;
+            document.getElementById('artist-name').innerText = entry.artist.name || "";
+            document.getElementById('artist-bio').innerText = entry.artist.bio || "";
             document.getElementById('artist-img').src = entry.artist.image_url || "";
         } else {
             artistBox.style.display = 'none';
         }
+        
         document.getElementById('detail-panel').style.display = 'block';
     }
 
@@ -349,28 +442,37 @@
         resizeCanvas(min(windowWidth * 0.95, 1200), 1350);
     }
 
+    // 🌊 流沙粒子模型
     class Particle {
         constructor() {
-            this.x = random(width); this.y = random(height);
-            this.vx = random(-0.3, 0.3); this.vy = random(-0.6, 0.1);
-            this.size = random(0.6, 3.2); this.alpha = random(50, 160);
+            this.x = random(width);
+            this.y = random(height);
+            this.vx = random(-0.3, 0.3);
+            this.vy = random(-0.6, 0.1); 
+            this.size = random(0.6, 3.2); 
+            this.alpha = random(50, 160);
         }
+
         update() {
             let n = noise(this.x * 0.004, this.y * 0.004, frameCount * 0.003);
-            let angle = n * TWO_PI * 2.5;
+            let angle = n * TWO_PI * 2.5; 
+            
             let d = dist(mouseX, mouseY, this.x, this.y);
-            if (d < 180 && mouseX > 0 && mouseY > 0) {
+            if(d < 180 && mouseX > 0 && mouseY > 0) {
                 let force = map(d, 0, 180, 0.8, 0);
                 this.x -= (mouseX - this.x) * force * 0.015;
                 this.y -= (mouseY - this.y) * force * 0.015;
             }
+
             this.x += cos(angle) * 0.7 + this.vx;
             this.y += sin(angle) * 0.7 + this.vy;
+
             if (this.x < 0) this.x = width;
             if (this.x > width) this.x = 0;
             if (this.y < 0) this.y = height;
             if (this.y > height) this.y = 0;
         }
+
         display() {
             noStroke();
             fill(209, 191, 174, this.alpha);
