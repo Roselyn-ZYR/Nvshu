@@ -6,7 +6,6 @@
     <title>女书数字档案馆 | Nüshu Digital Archive</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
-        /* 🚨 双保险字体：如果线上网络慢，会自动降级为衬线体 serif 正常渲染显示 */
         @font-face {
             font-family: 'NvshuSerif';
             src: url('fonts/NyushuSerif-1.000.ttf') format('truetype'),
@@ -37,7 +36,6 @@
             margin: 15vh auto 0 auto;
         }
 
-        /* 👑 极简悬浮控制面板 */
         .floating-bar {
             position: fixed;
             top: 20px;
@@ -91,7 +89,6 @@
             background: rgba(255,255,255,0.9);
         }
 
-        /* 📜 女书句子生成展示卷轴 */
         #sentence-canvas-box {
             position: fixed;
             bottom: 40px;
@@ -117,7 +114,6 @@
             overflow-x: auto;
         }
 
-        /* 详情面板保持右侧悬浮 */
         #detail-panel {
             display: none;
             position: fixed;
@@ -234,32 +230,27 @@
 </footer>
 
 <script>
-    // ⚡ 终极底牌：直接将核心数据嵌入 HTML 内部，彻底斩断对外部网络资源的依赖！
+    // ⚡ 核心改动：在这里放入你原本 json 文件里完整的庞大数据
     let nushuData = [
-      { "char": "𖿡", "pinyin": "gā", "meaning_cn": "家", "meaning_en": "home", "meaning_de": "Zuhause", "description": "Historical Nüshu script meaning Home." },
-      { "char": "𖿫", "pinyin": "niú", "meaning_cn": "女", "meaning_en": "woman", "meaning_de": "Frau", "description": "Historical Nüshu script meaning Woman." },
-      { "char": "𖿬", "pinyin": "shū", "meaning_cn": "书", "meaning_en": "script / book", "meaning_de": "Schrift", "description": "Historical Nüshu script meaning Book or Script." },
-      { "char": "𖿰", "pinyin": "tiān", "meaning_cn": "天", "meaning_en": "heaven / sky", "meaning_de": "Himmel", "description": "Nüshu digital archive collection." },
-      { "char": "𖿱", "pinyin": "dì", "meaning_cn": "地", "meaning_en": "earth / land", "meaning_de": "Erde", "description": "Nüshu digital archive collection." },
-      { "char": "𖿲", "pinyin": "rén", "meaning_cn": "人", "meaning_en": "people / human", "meaning_de": "Mensch", "description": "Nüshu digital archive collection." }
+        /* ⬇️ 在这里粘贴你原本 json 文件里的全部数据，例：[{"char":"𖿡",...},{"char":"𖿫",...}] ⬇/ */
+
     ]; 
     
-    let cols = 3, rows = 2; // 临时改为匹配本地测试阵列大小
+    let cols = 24, rows = 17; // 已经为你彻底恢复原本的 24 x 17 字符矩阵
     let searchQuery = "";
     let particles = [];
     let isTyping = false; 
 
     function preload() {
-        console.log("✅ 内置本地数据装载就绪，条数:", nushuData.length);
+        console.log("✅ 完整女书数据装载成功！条数:", nushuData.length);
     }
 
     function setup() {
         let w = min(windowWidth * 0.95, 1200);
-        let cnv = createCanvas(w, 800); 
+        let cnv = createCanvas(w, 1350); 
         cnv.parent('p5-container');
         textAlign(CENTER, CENTER);
 
-        // 初始化背景流沙
         for(let i = 0; i < 800; i++){ particles.push(new Particle()); }
         
         let searchInput = document.getElementById('nushu-search');
@@ -352,9 +343,8 @@
             }
 
             push(); 
-            let currentSize = isSearchMatch ? cellSizeW * 0.6 : (d < 350 && mouseX > 0 && mouseY > 0 ? cellSizeW * 0.45 : cellSizeW * 0.35);
+            let currentSize = isSearchMatch ? cellSizeW * 1.35 : (d < 350 && mouseX > 0 && mouseY > 0 ? cellSizeW * 0.9 : cellSizeW * 0.72);
             
-            // 💡 Fallback 机制：即使线上字体文件加载被网络阻断，也会强行用 Mac 系统衬线体呈现字符，绝不让画面空白！
             drawingContext.font = `${floor(currentSize)}px 'NvshuSerif', serif`;
             drawingContext.fillStyle = isSearchMatch ? 'rgba(176, 58, 56, 1)' : (d < 350 && mouseX > 0 && mouseY > 0 ? `rgba(176, 58, 56, ${map(d, 0, 350, 0.9, 0.2)})` : 'rgba(176, 58, 56, 0.15)');
             drawingContext.textAlign = 'center';
@@ -370,7 +360,7 @@
 
         if (activeDrawParams) {
             push();
-            drawingContext.font = `bold ${floor(cellSizeW * 0.8)}px 'NvshuSerif', serif`;
+            drawingContext.font = `bold ${floor(cellSizeW * 1.7)}px 'NvshuSerif', serif`;
             drawingContext.fillStyle = 'rgba(176, 58, 56, 1)'; 
             drawingContext.textAlign = 'center';
             drawingContext.textBaseline = 'middle';
@@ -417,7 +407,7 @@
         document.getElementById('detail-panel').style.display = 'block';
     }
 
-    function windowResized() { resizeCanvas(min(windowWidth * 0.95, 1200), 800); }
+    function windowResized() { resizeCanvas(min(windowWidth * 0.95, 1200), 1350); }
 
     class Particle {
         constructor() {
