@@ -190,22 +190,16 @@
 <div id="detail-panel">
     <div onclick="this.parentElement.style.display='none'" style="cursor:pointer; float:right; color:#AAA; font-size:18px;">✕</div>
     <div id="detail-char"></div>
-    
     <div class="detail-label">Jiangyong Pronunciation / 方言发音</div>
     <div id="detail-pinyin" class="detail-value"></div>
-    
     <div class="detail-label">Chinese Hanzi / 对应汉字</div>
     <div id="detail-meaning" class="detail-value"></div>
-    
     <div class="detail-label">English Definition / 英文释义</div>
     <div id="detail-english" class="detail-value"></div>
-    
     <div class="detail-label">Deutsch Übersetzung / 德语翻译</div>
     <div id="detail-deutsch" class="detail-value"></div>
-    
     <div class="detail-label">Context / Archive Description</div>
     <div id="detail-desc" style="font-size:12px; line-height:1.5; color:#666; margin-top:4px;"></div>
-
     <div id="artist-box">
         <div class="detail-label" style="color:var(--rouge); border:none; margin-top:10px;">✨ Creative Power / 艺术力量</div>
         <img id="artist-img" class="artist-img" src="" alt="Artist">
@@ -222,7 +216,15 @@
 </footer>
 
 <script>
-    // ✅ 修复：独立的 loading 隐藏函数，带超时兜底
+    // ── 全局状态 ──────────────────────────────────────────
+    let nushuData = [];
+    let dataReady = false;
+    let cols = 24, rows = 17;
+    let searchQuery = "";
+    let particles = [];
+    let isTyping = false;
+
+    // ── Loading 隐藏（带兜底） ────────────────────────────
     function hideLoading() {
         let loading = document.getElementById('loading');
         if (loading && loading.style.opacity !== '0') {
@@ -230,161 +232,139 @@
             setTimeout(() => { if (loading.parentNode) loading.remove(); }, 800);
         }
     }
+    // 最多等 3 秒强制消失，不依赖字体或数据
+    setTimeout(hideLoading, 3000);
 
-    // 字体加载完成就消失；最多等 2.5 秒强制消失（兜底）
-    if (document.fonts) {
-        document.fonts.ready.then(hideLoading);
-    }
-    setTimeout(hideLoading, 2500);
+    // ── 用原生 fetch 加载 JSON（替换掉 loadJSON）──────────
+    fetch('nushu_data.json')
+        .then(res => {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        })
+        .then(data => {
+            nushuData = Array.isArray(data) ? data : Object.values(data);
+            dataReady = true;
+            hideLoading(); // 数据加载完就立刻消失
+        })
+        .catch(err => {
+            console.error('nushu_data.json 加载失败:', err);
+            hideLoading(); // 失败也消失，不要卡住
+        });
 
-    let nushuData = []; 
-    let cols = 24, rows = 17; 
-    let searchQuery = "";
-    let particles = [];
-    let isTyping = false; 
-
-    function preload() {
-        loadJSON('nushu_data.json',
-            (data) => { 
-                nushuData = Array.isArray(data) ? data : Object.values(data); 
-            },
-            (err) => {
-                console.error('JSON 加载失败:', err);
-                // 即使 JSON 失败也要让 loading 消失
-                hideLoading();
-            }
-        );
-    }
-
+    // ── p5.js sketch ─────────────────────────────────────
+    // 注意：不再使用 preload()，数据由上面的 fetch 异步加载
     function setup() {
         let w = min(windowWidth * 0.95, 1200);
-        let cnv = createCanvas(w, 1350); 
+        let cnv = createCanvas(w, 1350);
         cnv.parent('p5-container');
-        
-        textFont('NvshuSerif'); 
+        textFont('NvshuSerif');
         textAlign(CENTER, CENTER);
 
-        for(let i = 0; i < 800; i++){ particles.push(new Particle()); }
-        
-        // 搜索事件绑定
+        for (let i = 0; i < 800; i++) { particles.push(new Particle()); }
+
+        // 搜索框事件
         let searchInput = document.getElementById('nushu-search');
         searchInput.addEventListener('compositionstart', () => { isTyping = true; });
-        searchInput.addEventListener('compositionend', (e) => { 
-            isTyping = false; 
+        searchInput.addEventListener('compositionend', (e) => {
+            isTyping = false;
             searchQuery = e.target.value.trim().toLowerCase();
         });
         searchInput.addEventListener('input', (e) => {
             if (!isTyping) searchQuery = e.target.value.trim().toLowerCase();
         });
 
-        // 句子生成器
+        // 句子生成器事件
         let generatorInput = document.getElementById('nushu-generator');
         generatorInput.addEventListener('input', (e) => {
             let text = e.target.value.trim();
             let box = document.getElementById('sentence-canvas-box');
             let charDisplay = document.getElementById('generated-sentence');
             let transDisplay = document.getElementById('generated-translation');
-            
-            if (text.length === 0) {
-                box.style.display = 'none';
-                return;
-            }
-            
+
+            if (text.length === 0) { box.style.display = 'none'; return; }
+
             let resultChars = "";
             for (let targetChar of text) {
                 let found = nushuData.find(item => item.meaning_cn && item.meaning_cn.includes(targetChar));
-                if (found) {
-                    resultChars += found.char;
-                } else {
-                    resultChars += " ﹒ ";
-                }
+                resultChars += found ? found.char : " ﹒ ";
             }
-            
-            if(resultChars.length > 0) {
-                charDisplay.innerText = resultChars;
-                transDisplay.innerText = `" ${text} "`;
-                box.style.display = 'block';
-            }
+            charDisplay.innerText = resultChars;
+            transDisplay.innerText = `" ${text} "`;
+            box.style.display = 'block';
         });
     }
 
     function draw() {
         clear();
-        
-        let padX = 40;
-        let padY = 80; 
+
+        let padX = 40, padY = 80;
         let drawW = width - padX * 2;
         let drawH = height - padY * 2;
-        
         let cellSizeW = drawW / cols;
         let cellSizeH = drawH / rows;
 
-        for(let i = 0; i < particles.length; i++){
+        // 流沙粒子
+        for (let i = 0; i < particles.length; i++) {
             particles[i].update();
             particles[i].display();
         }
 
-        if (nushuData.length === 0) return;
+        // 数据还没准备好就只画粒子
+        if (!dataReady || nushuData.length === 0) return;
 
+        // 找最近字符
         let closestIndex = -1;
         let minDistance = 999999;
-        
         for (let i = 0; i < nushuData.length; i++) {
-            let x = i % cols, y = floor(i / cols);
-            let tx = padX + x * cellSizeW + cellSizeW / 2;
-            let ty = padY + y * cellSizeH + cellSizeH / 2;
+            let tx = padX + (i % cols) * cellSizeW + cellSizeW / 2;
+            let ty = padY + floor(i / cols) * cellSizeH + cellSizeH / 2;
             let d = dist(mouseX, mouseY, tx, ty);
-            if (d < minDistance) {
-                minDistance = d;
-                closestIndex = i;
-            }
+            if (d < minDistance) { minDistance = d; closestIndex = i; }
         }
-        
+
         let activeDrawParams = null;
 
         for (let i = 0; i < nushuData.length; i++) {
             let entry = nushuData[i];
-            let x = i % cols;
-            let y = floor(i / cols);
-            
+            let x = i % cols, y = floor(i / cols);
             let tx = padX + x * cellSizeW + cellSizeW / 2;
             let ty = padY + y * cellSizeH + cellSizeH / 2;
             let d = dist(mouseX, mouseY, tx, ty);
-            
+
             let isSearchMatch = false;
             if (!isTyping && searchQuery.length > 0) {
                 let cnMatch = entry.meaning_cn && entry.meaning_cn.includes(searchQuery);
-                let pyMatch = entry.pinyin && entry.pinyin.toLowerCase() === searchQuery;
-                let enMatch = entry.meaning_en && entry.meaning_en.toLowerCase().split(' / ').includes(searchQuery);
-                let deMatch = entry.meaning_de && entry.meaning_de.toLowerCase().split(' / ').includes(searchQuery);
-                
-                if (!pyMatch && entry.pinyin) pyMatch = searchQuery.length > 1 && entry.pinyin.toLowerCase().includes(searchQuery);
-                if (!enMatch && entry.meaning_en) enMatch = searchQuery.length > 2 && entry.meaning_en.toLowerCase().includes(searchQuery);
-                if (!deMatch && entry.meaning_de) deMatch = searchQuery.length > 2 && entry.meaning_de.toLowerCase().includes(searchQuery);
-
+                let pyMatch = entry.pinyin && entry.pinyin.toLowerCase().includes(searchQuery);
+                let enMatch = entry.meaning_en && entry.meaning_en.toLowerCase().includes(searchQuery);
+                let deMatch = entry.meaning_de && entry.meaning_de.toLowerCase().includes(searchQuery);
                 if (cnMatch || pyMatch || enMatch || deMatch) isSearchMatch = true;
             }
 
             let n = noise(x * 0.1, y * 0.1, frameCount * 0.005);
-            
+
             if (i === closestIndex && minDistance < cellSizeW * 1.5 && mouseX > 0 && mouseY > 0) {
-                activeDrawParams = { entry: entry, tx: tx, ty: ty, isSearchMatch: isSearchMatch };
-                continue; 
+                activeDrawParams = { entry, tx, ty, isSearchMatch };
+                continue;
             }
 
-            push(); 
-            let currentSize = isSearchMatch ? cellSizeW * 1.35 : (d < 350 && mouseX > 0 && mouseY > 0 ? cellSizeW * 0.9 : cellSizeW * 0.72);
+            push();
+            let currentSize = isSearchMatch
+                ? cellSizeW * 1.35
+                : (d < 350 && mouseX > 0 && mouseY > 0 ? cellSizeW * 0.9 : cellSizeW * 0.72);
             drawingContext.font = `${floor(currentSize)}px NvshuSerif`;
-            drawingContext.fillStyle = isSearchMatch ? 'rgba(176, 58, 56, 1)' : (d < 350 && mouseX > 0 && mouseY > 0 ? `rgba(176, 58, 56, ${map(d, 0, 350, 0.9, 0.2)})` : 'rgba(176, 58, 56, 0.15)');
+            drawingContext.fillStyle = isSearchMatch
+                ? 'rgba(176, 58, 56, 1)'
+                : (d < 350 && mouseX > 0 && mouseY > 0
+                    ? `rgba(176, 58, 56, ${map(d, 0, 350, 0.9, 0.2)})`
+                    : 'rgba(176, 58, 56, 0.15)');
             drawingContext.textAlign = 'center';
             drawingContext.textBaseline = 'middle';
 
             let drift = (isSearchMatch || isTyping) ? 0 : map(d, 0, 350, 20, 0, true);
-            let finalX = Math.round(tx + cos(n * TWO_PI) * drift);
-            let finalY = Math.round(ty + sin(n * TWO_PI) * drift);
-            
-            drawingContext.fillText(entry.char, finalX, finalY);
-            pop(); 
+            drawingContext.fillText(entry.char,
+                Math.round(tx + cos(n * TWO_PI) * drift),
+                Math.round(ty + sin(n * TWO_PI) * drift));
+            pop();
         }
 
         if (activeDrawParams) {
@@ -400,16 +380,14 @@
 
     function mousePressed() {
         let padX = 40, padY = 80;
-        let drawW = width - padX * 2, drawH = height - padY * 2;
-        let cellSizeW = drawW / cols, cellSizeH = drawH / rows;
-        
-        if (nushuData.length === 0) return;
+        let cellSizeW = (width - padX * 2) / cols;
+        let cellSizeH = (height - padY * 2) / rows;
+
+        if (!dataReady || nushuData.length === 0) return;
 
         for (let i = 0; i < nushuData.length; i++) {
-            let x = i % cols, y = floor(i / cols);
-            let tx = padX + x * cellSizeW + cellSizeW / 2;
-            let ty = padY + y * cellSizeH + cellSizeH / 2;
-            
+            let tx = padX + (i % cols) * cellSizeW + cellSizeW / 2;
+            let ty = padY + floor(i / cols) * cellSizeH + cellSizeH / 2;
             if (dist(mouseX, mouseY, tx, ty) < cellSizeW / 1.2) {
                 showDetail(nushuData[i]);
                 break;
@@ -420,11 +398,11 @@
     function showDetail(entry) {
         document.getElementById('detail-char').innerText = entry.char;
         document.getElementById('detail-pinyin').innerText = entry.pinyin ? `[ ${entry.pinyin} ]` : "暂无音标";
-        document.getElementById('detail-meaning').innerText = entry.meaning_cn ? entry.meaning_cn : "待整理";
-        document.getElementById('detail-english').innerText = entry.meaning_en ? entry.meaning_en : "None";
-        document.getElementById('detail-deutsch').innerText = entry.meaning_de ? entry.meaning_de : "Keine";
-        document.getElementById('detail-desc').innerText = entry.description ? entry.description : "Digital Archive processing.";
-        
+        document.getElementById('detail-meaning').innerText = entry.meaning_cn || "待整理";
+        document.getElementById('detail-english').innerText = entry.meaning_en || "None";
+        document.getElementById('detail-deutsch').innerText = entry.meaning_de || "Keine";
+        document.getElementById('detail-desc').innerText = entry.description || "Digital Archive processing.";
+
         let artistBox = document.getElementById('artist-box');
         if (entry.artist) {
             artistBox.style.display = 'block';
@@ -434,7 +412,6 @@
         } else {
             artistBox.style.display = 'none';
         }
-        
         document.getElementById('detail-panel').style.display = 'block';
     }
 
@@ -451,27 +428,22 @@
             this.size = random(0.6, 3.2);
             this.alpha = random(50, 160);
         }
-
         update() {
             let n = noise(this.x * 0.004, this.y * 0.004, frameCount * 0.003);
             let angle = n * TWO_PI * 2.5;
-            
             let d = dist(mouseX, mouseY, this.x, this.y);
-            if(d < 180 && mouseX > 0 && mouseY > 0) {
+            if (d < 180 && mouseX > 0 && mouseY > 0) {
                 let force = map(d, 0, 180, 0.8, 0);
                 this.x -= (mouseX - this.x) * force * 0.015;
                 this.y -= (mouseY - this.y) * force * 0.015;
             }
-
             this.x += cos(angle) * 0.7 + this.vx;
             this.y += sin(angle) * 0.7 + this.vy;
-
             if (this.x < 0) this.x = width;
             if (this.x > width) this.x = 0;
             if (this.y < 0) this.y = height;
             if (this.y > height) this.y = 0;
         }
-
         display() {
             noStroke();
             fill(209, 191, 174, this.alpha);
