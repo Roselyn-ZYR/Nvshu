@@ -345,7 +345,8 @@
         #detail-panel {
             display: none;
             position: fixed;
-            right: 16px;
+            left: 40px;
+            right: auto;
             top: 50%;
             transform: translateY(-50%);
             width: min(320px, calc(100vw - 32px));
@@ -358,6 +359,21 @@
             z-index: 2001;
             max-height: 75vh;
             overflow-y: auto;
+        }
+
+        @media (min-width: 769px) {
+            #detail-panel {
+                left: 40px;
+                right: auto;
+                max-width: 300px;
+            }
+
+            body.mode-generate #detail-panel {
+                top: auto;
+                bottom: 40px;
+                transform: none;
+                max-height: min(70vh, 520px);
+            }
         }
 
         #detail-char { font-family: 'NvshuSerif'; font-size: clamp(72px, 18vw, 110px); color: var(--rouge); text-align: center; line-height: 1.1; }
