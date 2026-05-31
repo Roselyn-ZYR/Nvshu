@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>女书数字档案馆 | Nüshu Digital Archive</title>
+    <!-- 引入稳定版 p5.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
-        /* 🚨 请务必检查：GitHub 仓库中是否存在 fonts 文件夹，且字体文件名大小写与下方完全一致 */
         @font-face {
             font-family: 'NvshuSerif';
             src: url('./fonts/NyushuSerif-1.000.ttf') format('truetype');
@@ -34,7 +34,7 @@
         canvas {
             display: block;
             font-family: 'NvshuSerif' !important;
-            margin: 15vh auto 0 auto; /* 居中画布，并为顶部导航留出空间 */
+            margin: 15vh auto 0 auto;
         }
 
         /* 👑 极简悬浮控制面板 */
@@ -159,7 +159,26 @@
         }
 
         #p5-container { width: 100%; display: flex; justify-content: center; cursor: crosshair; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-paper); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s; }
+        
+        /* ⚡ 核心修复：1.5秒后通过CSS动画无条件强制淡出，绝不假死 */
+        #loading { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: var(--bg-paper); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 9999; 
+            animation: forcedFadeOut 0.5s ease-in 1.5s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes forcedFadeOut {
+            to { opacity: 0; visibility: hidden; }
+        }
     </style>
 </head>
 <body>
@@ -223,22 +242,20 @@
     let particles = [];
     let isTyping = false; 
 
-    // 强制关闭遮罩层的安全函数
-    function removeLoadingScreen() {
-        let loading = document.getElementById('loading');
-        if(loading) {
-            loading.style.opacity = '0';
-            setTimeout(() => loading.remove(), 500);
-        }
-    }
-
+    // ⚡ 核心修复：改用原生异步 Fetch 机制，代替高风险的 preload 阻塞加载，彻底防死锁
     function preload() {
-        // 使用相对路径保护，确保 GitHub Pages 上正常加载
-        loadJSON('./nushu_data.json', (data) => { 
-            nushuData = Array.isArray(data) ? data : Object.values(data); 
-        }, (err) => {
-            console.error("🚨 无法加载 nushu_data.json，请检查根目录下文件是否存在！", err);
-        });
+        fetch('./nushu_data.json')
+            .then(response => {
+                if (!response.ok) throw new Error("HTTP error " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                nushuData = Array.isArray(data) ? data : Object.values(data);
+                console.log("✅ 成功加载女书数据条数:", nushuData.length);
+            })
+            .catch(err => {
+                console.error("🚨 【关键提示】数据文件加载失败，请检查根目录下是否存在合法的 nushu_data.json 文件。", err);
+            });
     }
 
     function setup() {
@@ -249,16 +266,10 @@
         textFont('NvshuSerif'); 
         textAlign(CENTER, CENTER);
 
-        // 初始化流沙星河粒子
+        // 依然初始化粒子系统，即使数据没来，流沙动态美感也能展现
         for(let i = 0; i < 800; i++){ particles.push(new Particle()); }
-
-        // GitHub 优化版：监听字体加载状态，若 1.5 秒内由于网络阻碍未加载完，强制开屏避免假死
-        if (document.fonts) {
-            document.fonts.ready.then(removeLoadingScreen);
-        }
-        setTimeout(removeLoadingScreen, 1500); 
         
-        // 搜索栏输入法保护
+        // 搜索事件绑定
         let searchInput = document.getElementById('nushu-search');
         searchInput.addEventListener('compositionstart', () => { isTyping = true; });
         searchInput.addEventListener('compositionend', (e) => { 
@@ -303,9 +314,6 @@
     function draw() {
         clear();
         
-        // 防御性保护：确保数据已经成功拉取再进行渲染，防止控制台爆红阻断 p5.js 引擎
-        if (!nushuData || nushuData.length === 0) return;
-
         let padX = 40;
         let padY = 80; 
         let drawW = width - padX * 2;
@@ -314,16 +322,18 @@
         let cellSizeW = drawW / cols;
         let cellSizeH = drawH / rows;
 
-        // 渲染背景流沙
+        // 渲染背景流沙（这部分不会受到 JSON 数据缺失的影响）
         for(let i = 0; i < particles.length; i++){
             particles[i].update();
             particles[i].display();
         }
 
+        // 安全防线：如果 JSON 还没加载完或失败，不渲染字符，防止硬错误中断流程
+        if (!nushuData || nushuData.length === 0) return;
+
         let closestIndex = -1;
         let minDistance = 999999;
         
-        // 寻找鼠标最近的字
         for (let i = 0; i < nushuData.length; i++) {
             let x = i % cols, y = floor(i / cols);
             let tx = padX + x * cellSizeW + cellSizeW / 2;
@@ -337,7 +347,6 @@
         
         let activeDrawParams = null;
 
-        // 循环渲染字形阵列
         for (let i = 0; i < nushuData.length; i++) {
             let entry = nushuData[i];
             if (!entry || !entry.char) continue;
@@ -385,7 +394,6 @@
             pop(); 
         }
 
-        // 顶层焦点交互文字渲染
         if (activeDrawParams) {
             push();
             drawingContext.font = `bold ${floor(cellSizeW * 1.7)}px NvshuSerif`;
@@ -442,7 +450,6 @@
         resizeCanvas(min(windowWidth * 0.95, 1200), 1350);
     }
 
-    // 🌊 流沙粒子模型
     class Particle {
         constructor() {
             this.x = random(width);
