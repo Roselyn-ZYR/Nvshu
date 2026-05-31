@@ -62,13 +62,35 @@
         }
 
         .archive-brand {
-            font-family: 'NvshuSerif', serif;
-            color: var(--rouge);
-            font-size: clamp(0.95rem, 3.5vw, 1.2rem);
-            font-weight: bold;
-            letter-spacing: 2px;
+            display: inline-flex;
+            align-items: baseline;
+            gap: 10px;
             text-decoration: none;
             white-space: nowrap;
+        }
+
+        .brand-nvshu {
+            font-family: 'NvshuSerif', serif;
+            color: var(--rouge);
+            font-size: clamp(1.35rem, 4vw, 1.85rem);
+            font-weight: bold;
+            letter-spacing: 4px;
+            line-height: 1;
+        }
+
+        .brand-divider {
+            color: rgba(176, 58, 56, 0.35);
+            font-weight: 300;
+            font-size: 1rem;
+        }
+
+        .brand-en {
+            font-family: 'PingFang SC', 'Helvetica Neue', sans-serif;
+            color: #9a6b6a;
+            font-size: clamp(0.62rem, 2vw, 0.72rem);
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
         }
 
         .mode-tabs {
@@ -138,15 +160,186 @@
             animation: slideIn 0.4s ease-out;
         }
         @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes scrollReveal { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }
+
+        .sentence-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .sentence-seal {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border: 1.5px solid var(--rouge);
+            color: var(--rouge);
+            font-family: 'NvshuSerif', serif;
+            font-size: 18px;
+            transform: rotate(-8deg);
+            opacity: 0.85;
+        }
+
+        .sentence-title-cn {
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: var(--rouge);
+        }
+
+        .sentence-title-en {
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: #aaa;
+            margin-top: 3px;
+            text-transform: uppercase;
+        }
+
+        .sentence-scroll-inner {
+            position: relative;
+            overflow-x: auto;
+            padding: 8px 0 4px;
+        }
+
+        .sentence-scroll-inner::before,
+        .sentence-scroll-inner::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 18px;
+            pointer-events: none;
+            z-index: 1;
+        }
 
         #generated-sentence {
             font-family: 'NvshuSerif' !important;
             font-size: clamp(32px, 8vw, 48px);
             color: var(--rouge);
-            margin-top: 8px;
             letter-spacing: 4px;
-            line-height: 1.35;
+            line-height: 1.45;
             word-break: break-all;
+            white-space: nowrap;
+        }
+
+        .sentence-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        .sentence-stats {
+            margin-top: 8px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: #b03a38;
+            opacity: 0.75;
+        }
+
+        /* 电脑端 · 生成模式艺术界面 */
+        @media (min-width: 769px) {
+            body.mode-generate .floating-bar {
+                width: min(680px, 72%);
+                padding: 22px 28px 20px;
+                border-color: rgba(176, 58, 56, 0.22);
+                background:
+                    linear-gradient(135deg, rgba(255,252,248,0.97) 0%, rgba(250,241,236,0.94) 100%);
+                box-shadow: 0 24px 60px rgba(176, 58, 56, 0.08);
+            }
+
+            body.mode-generate .mode-input-wrap {
+                position: relative;
+                padding-top: 6px;
+            }
+
+            body.mode-generate .mode-input-wrap::before {
+                content: '以词成句 · Worte werden zu Schrift';
+                display: block;
+                text-align: center;
+                font-size: 10px;
+                letter-spacing: 3px;
+                color: rgba(176, 58, 56, 0.55);
+                margin-bottom: 14px;
+            }
+
+            body.mode-generate .minimal-input {
+                font-size: 19px;
+                padding: 18px 12px 14px;
+                border: none;
+                border-bottom: 1px solid rgba(176, 58, 56, 0.18);
+                border-radius: 0;
+                background: transparent;
+                text-align: center;
+                color: #4a3535;
+                letter-spacing: 0.5px;
+            }
+
+            body.mode-generate .minimal-input::placeholder {
+                color: rgba(154, 107, 106, 0.65);
+                font-style: italic;
+            }
+
+            body.mode-generate .mode-hint {
+                text-align: center;
+                font-size: 10px;
+                letter-spacing: 1.5px;
+                color: #aaa;
+                margin-top: 12px;
+            }
+
+            body.mode-generate #sentence-canvas-box {
+                left: auto;
+                right: 40px;
+                bottom: 40px;
+                width: min(420px, calc(100vw - 80px));
+                max-width: 420px;
+                padding: 28px 32px 24px;
+                background:
+                    linear-gradient(168deg, #fffefb 0%, #faf3ee 48%, #f3e8e2 100%);
+                border: 1px solid rgba(176, 58, 56, 0.12);
+                border-left: none;
+                border-radius: 2px 28px 28px 2px;
+                box-shadow:
+                    -6px 0 0 var(--rouge),
+                    0 28px 70px rgba(176, 58, 56, 0.14),
+                    inset 0 1px 0 rgba(255,255,255,0.8);
+                animation: scrollReveal 0.55s ease-out;
+            }
+
+            body.mode-generate .sentence-scroll-inner::before {
+                left: 0;
+                background: linear-gradient(to right, #faf3ee, transparent);
+            }
+
+            body.mode-generate .sentence-scroll-inner::after {
+                right: 0;
+                background: linear-gradient(to left, #f3e8e2, transparent);
+            }
+
+            body.mode-generate #generated-sentence {
+                font-size: clamp(36px, 3.2vw, 52px);
+                letter-spacing: 6px;
+            }
+
+            body.mode-generate .sentence-seal {
+                width: 44px;
+                height: 44px;
+                font-size: 22px;
+            }
+
+            body.mode-generate .sentence-title-cn {
+                font-size: 12px;
+                letter-spacing: 4px;
+            }
+
+            body.mode-generate canvas {
+                filter: saturate(0.92) contrast(0.98);
+                transition: filter 0.5s ease;
+            }
         }
 
         #detail-panel {
@@ -210,7 +403,8 @@
                 flex-wrap: wrap;
                 gap: 8px;
             }
-            .archive-brand { font-size: 0.82rem; letter-spacing: 1px; }
+            .brand-nvshu { font-size: 1.15rem; letter-spacing: 2px; }
+            .brand-en { font-size: 0.58rem; letter-spacing: 2px; }
             .mode-tabs { flex: 1; justify-content: flex-end; }
             .mode-tab { padding: 6px 10px; font-size: 10px; }
             .minimal-input { padding: 10px 14px; font-size: 15px; }
@@ -247,7 +441,11 @@
 
 <div class="floating-bar">
     <div class="bar-top">
-        <a href="#" class="archive-brand">NÜSHU ARCHIVE</a>
+        <a href="#" class="archive-brand">
+            <span class="brand-nvshu">女书</span>
+            <span class="brand-divider">·</span>
+            <span class="brand-en">Nüshu Archive</span>
+        </a>
         <div class="mode-tabs">
             <button type="button" class="mode-tab active" data-mode="search">检索 Search</button>
             <button type="button" class="mode-tab" data-mode="generate">生成 Generate</button>
@@ -260,9 +458,18 @@
 </div>
 
 <div id="sentence-canvas-box">
-    <div style="font-size: 10px; color: #AAA; letter-spacing: 2px;">NÜSHU SENTENCE / 女书句子</div>
-    <div id="generated-sentence"></div>
-    <div id="generated-translation" style="font-size: 12px; color: #666; margin-top: 8px; font-style: italic;"></div>
+    <div class="sentence-header">
+        <span class="sentence-seal">书</span>
+        <div>
+            <div class="sentence-title-cn">女书句子</div>
+            <div class="sentence-title-en">Nüshu Script Composition</div>
+        </div>
+    </div>
+    <div class="sentence-scroll-inner">
+        <div id="generated-sentence"></div>
+    </div>
+    <div id="generated-translation" class="sentence-meta"></div>
+    <div id="generated-stats" class="sentence-stats"></div>
 </div>
 
 <div id="detail-panel">
@@ -313,8 +520,8 @@
             hint: "在字符矩阵中高亮匹配项 · Highlight matches in the archive grid"
         },
         generate: {
-            placeholder: "生成：中文句子 / English sentence / Deutsch Satz",
-            hint: "按词匹配档案并生成女书句子 · Words map to archive entries"
+            placeholder: "写下一句话，让它化作女书…",
+            hint: "中文 · English · Deutsch — 每个词映射档案中的一字"
         }
     };
 
@@ -491,6 +698,7 @@
 
     function setUiMode(mode) {
         uiMode = mode;
+        document.body.classList.toggle('mode-generate', mode === 'generate');
         document.querySelectorAll('.mode-tab').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.mode === mode);
         });
@@ -505,6 +713,7 @@
         document.getElementById('sentence-canvas-box').style.display = 'none';
         document.getElementById('generated-sentence').innerText = '';
         document.getElementById('generated-translation').innerText = '';
+        document.getElementById('generated-stats').innerText = '';
         input.focus();
     }
 
@@ -521,16 +730,21 @@
         let transDisplay = document.getElementById('generated-translation');
         let text = value.trim();
 
+        let statsDisplay = document.getElementById('generated-stats');
         if (!text) {
             box.style.display = 'none';
             charDisplay.innerText = '';
             transDisplay.innerText = '';
+            statsDisplay.innerText = '';
             return;
         }
 
         let result = generateNushuSentence(text);
         charDisplay.innerText = result.chars || ' ﹒ ';
-        transDisplay.innerText = `" ${text} " · ${result.matched}/${result.total} matched`;
+        transDisplay.innerText = `「 ${text} 」`;
+        statsDisplay.innerText = result.matched === result.total
+            ? `◈ ${result.total} words woven into script`
+            : `◈ ${result.matched} of ${result.total} words matched · ﹒ marks the unknown`;
         box.style.display = 'block';
     }
 
