@@ -347,8 +347,9 @@
             position: fixed;
             left: 40px;
             right: auto;
-            top: 50%;
-            transform: translateY(-50%);
+            top: auto;
+            bottom: 40px;
+            transform: none;
             width: min(320px, calc(100vw - 32px));
             background: rgba(250, 246, 242, 0.98);
             backdrop-filter: blur(25px);
@@ -357,7 +358,7 @@
             border-radius: 32px;
             box-shadow: 0 40px 80px rgba(176, 58, 56, 0.12);
             z-index: 2001;
-            max-height: 75vh;
+            max-height: min(58vh, 480px);
             overflow-y: auto;
         }
 
@@ -365,14 +366,11 @@
             #detail-panel {
                 left: 40px;
                 right: auto;
-                max-width: 300px;
-            }
-
-            body.mode-generate #detail-panel {
                 top: auto;
                 bottom: 40px;
                 transform: none;
-                max-height: min(70vh, 520px);
+                max-width: 300px;
+                max-height: min(58vh, 480px);
             }
         }
 
