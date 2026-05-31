@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>女书数字档案馆 | Nüshu Digital Archive</title>
-    <!-- 引入稳定版 p5.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
+        /* 🚨 优化点：去掉路径开头的 ./ 强制使用绝对相对路径，规避 GitHub Pages 的目录层级解析错误 */
         @font-face {
             font-family: 'NvshuSerif';
-            src: url('./fonts/NyushuSerif-1.000.ttf') format('truetype');
+            src: url('fonts/NyushuSerif-1.000.ttf') format('truetype');
             font-display: swap;
         }
 
@@ -160,7 +160,7 @@
 
         #p5-container { width: 100%; display: flex; justify-content: center; cursor: crosshair; }
         
-        /* ⚡ 核心修复：1.5秒后通过CSS动画无条件强制淡出，绝不假死 */
+        /* Loading 遮罩动画：无论 JS 是否加载成功，1.5秒后强制淡出开屏 */
         #loading { 
             position: fixed; 
             top: 0; 
@@ -242,19 +242,19 @@
     let particles = [];
     let isTyping = false; 
 
-    // ⚡ 核心修复：改用原生异步 Fetch 机制，代替高风险的 preload 阻塞加载，彻底防死锁
+    // ⚡ 优化点：去掉路径开头的 ./，防止 GitHub Pages 以为要跨到根域下去抓数据
     function preload() {
-        fetch('./nushu_data.json')
+        fetch('nushu_data.json')
             .then(response => {
                 if (!response.ok) throw new Error("HTTP error " + response.status);
                 return response.json();
             })
             .then(data => {
                 nushuData = Array.isArray(data) ? data : Object.values(data);
-                console.log("✅ 成功加载女书数据条数:", nushuData.length);
+                console.log("✅ 数据加载成功，共计条数:", nushuData.length);
             })
             .catch(err => {
-                console.error("🚨 【关键提示】数据文件加载失败，请检查根目录下是否存在合法的 nushu_data.json 文件。", err);
+                console.error("🚨 【路径错误提示】未能在当前项目目录下找到 nushu_data.json 文件。", err);
             });
     }
 
@@ -266,7 +266,7 @@
         textFont('NvshuSerif'); 
         textAlign(CENTER, CENTER);
 
-        // 依然初始化粒子系统，即使数据没来，流沙动态美感也能展现
+        // 初始化背景粒子
         for(let i = 0; i < 800; i++){ particles.push(new Particle()); }
         
         // 搜索事件绑定
@@ -322,13 +322,13 @@
         let cellSizeW = drawW / cols;
         let cellSizeH = drawH / rows;
 
-        // 渲染背景流沙（这部分不会受到 JSON 数据缺失的影响）
+        // 渲染流沙
         for(let i = 0; i < particles.length; i++){
             particles[i].update();
             particles[i].display();
         }
 
-        // 安全防线：如果 JSON 还没加载完或失败，不渲染字符，防止硬错误中断流程
+        // 安全锁：在异步 JSON 还没抓取到之前，不执行渲染逻辑，防止底层红字阻断代码
         if (!nushuData || nushuData.length === 0) return;
 
         let closestIndex = -1;
