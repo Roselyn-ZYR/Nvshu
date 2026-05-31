@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>女书数字档案馆 | Nüshu Digital Archive</title>
-    <!-- 引入稳定版 p5.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
-        /* 🚨 双保险：请务必核对你 GitHub 上 fonts 文件夹内字体的真实名字是 Nvshu 还是 Nyushu */
+        /* 🚨 兼容性字体声明：确保路径和文件名精准对应 */
         @font-face {
             font-family: 'NvshuSerif';
-            src: url('fonts/NyushuSerif-1.000.ttf') format('truetype')
+            src: url('fonts/NyushuSerif-1.000.ttf') format('truetype'),
+                 url('fonts/NvshuSerif-1.000.ttf') format('truetype');
             font-display: swap;
         }
 
@@ -241,18 +241,30 @@
     let isTyping = false; 
 
     function preload() {
-        // 直接请求当前根目录下的数据
-        fetch('nushu_data.json')
+        console.log("🚀 [DEBUG] JavaScript 引擎已成功启动，准备拉取数据...");
+        
+        // 使用时间戳加破缓存机制，强制浏览器每一次都去抓最新的 JSON
+        fetch('nushu_data.json?v=' + Date.now())
             .then(response => {
-                if (!response.ok) throw new Error("HTTP " + response.status);
+                console.log("📡 [DEBUG] 收到服务器响应状态码:", response.status);
+                if (!response.ok) throw new Error("HTTP 状态错误: " + response.status);
                 return response.json();
             })
             .then(data => {
-                nushuData = Array.isArray(data) ? data : Object.values(data);
-                console.log("✅ JSON数据获取成功，共:", nushuData.length);
+                console.log("📦 [DEBUG] 成功抓取到原始 JSON 数据:", data);
+                
+                // 终极兼容：不管 JSON 最外层是直铺数组，还是包在某个对象内部，均强行提取
+                if (Array.isArray(data)) {
+                    nushuData = data;
+                } else if (data && typeof data === 'object') {
+                    let potentialArray = Object.values(data).find(val => Array.isArray(val));
+                    nushuData = potentialArray ? potentialArray : Object.values(data);
+                }
+                
+                console.log("✅ [DEBUG] 字符阵列成功提取！当前有效女书数据条数:", nushuData.length);
             })
             .catch(err => {
-                console.error("🚨 JSON文件读取失败！", err);
+                console.error("🚨 [DEBUG] 核心致命错误！数据抓取或解析失败原因:", err);
             });
     }
 
@@ -262,6 +274,7 @@
         cnv.parent('p5-container');
         textAlign(CENTER, CENTER);
 
+        // 生成流沙
         for(let i = 0; i < 800; i++){ particles.push(new Particle()); }
         
         let searchInput = document.getElementById('nushu-search');
@@ -316,6 +329,7 @@
             particles[i].display();
         }
 
+        // 数据未就绪时，原地安全折返，防止报错阻断
         if (!nushuData || nushuData.length === 0) return;
 
         let closestIndex = -1;
@@ -356,7 +370,7 @@
             push(); 
             let currentSize = isSearchMatch ? cellSizeW * 1.35 : (d < 350 && mouseX > 0 && mouseY > 0 ? cellSizeW * 0.9 : cellSizeW * 0.72);
             
-            // ⚡ 终极保险核心：即使线上 NvshuSerif 字体加载丢包，也强制 fallback 到 serif，确保能看见字！
+            // 💡 双重兜底：如果 NvshuSerif 字体资产网络异常，自动降级为标准衬线体渲染，决不丢失字符显示
             drawingContext.font = `${floor(currentSize)}px 'NvshuSerif', serif`;
             drawingContext.fillStyle = isSearchMatch ? 'rgba(176, 58, 56, 1)' : (d < 350 && mouseX > 0 && mouseY > 0 ? `rgba(176, 58, 56, ${map(d, 0, 350, 0.9, 0.2)})` : 'rgba(176, 58, 56, 0.15)');
             drawingContext.textAlign = 'center';
