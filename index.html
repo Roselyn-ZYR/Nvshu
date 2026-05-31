@@ -219,12 +219,17 @@
     // ── 全局状态 ──────────────────────────────────────────
     let nushuData = [];
     let dataReady = false;
+    let fontReady = false;
     let cols = 24, rows = 17;
     let searchQuery = "";
     let particles = [];
     let isTyping = false;
 
-    // ── Loading 隐藏（带兜底） ────────────────────────────
+    function setLoadingText(msg) {
+        let el = document.querySelector('#loading div');
+        if (el) el.textContent = msg;
+    }
+
     function hideLoading() {
         let loading = document.getElementById('loading');
         if (loading && loading.style.opacity !== '0') {
@@ -232,23 +237,44 @@
             setTimeout(() => { if (loading.parentNode) loading.remove(); }, 800);
         }
     }
-    // 最多等 3 秒强制消失，不依赖字体或数据
-    setTimeout(hideLoading, 3000);
 
-    // ── 用原生 fetch 加载 JSON（替换掉 loadJSON）──────────
-    fetch('nushu_data.json')
+    function tryHideLoading() {
+        if (dataReady && fontReady) hideLoading();
+    }
+
+    setTimeout(hideLoading, 5000);
+
+    // 加载女书字体（Canvas 需要字体就绪才能渲染字形）
+    (function loadNvshuFont() {
+        if (!document.fonts) {
+            fontReady = true;
+            tryHideLoading();
+            return;
+        }
+        const face = new FontFace('NvshuSerif', "url('fonts/NyushuSerif-1.000.ttf')");
+        face.load()
+            .then(f => { document.fonts.add(f); fontReady = true; tryHideLoading(); })
+            .catch(() => {
+                document.fonts.ready.then(() => { fontReady = true; tryHideLoading(); });
+            });
+    })();
+
+    fetch('./nushu_data.json')
         .then(res => {
             if (!res.ok) throw new Error('HTTP ' + res.status);
             return res.json();
         })
         .then(data => {
             nushuData = Array.isArray(data) ? data : Object.values(data);
-            dataReady = true;
-            hideLoading(); // 数据加载完就立刻消失
+            dataReady = nushuData.length > 0;
+            console.log('女书数据已加载:', nushuData.length, '条');
+            if (!dataReady) setLoadingText('数据为空，请检查 nushu_data.json');
+            tryHideLoading();
         })
         .catch(err => {
             console.error('nushu_data.json 加载失败:', err);
-            hideLoading(); // 失败也消失，不要卡住
+            setLoadingText('数据加载失败: ' + err.message);
+            hideLoading();
         });
 
     // ── p5.js sketch ─────────────────────────────────────
@@ -309,8 +335,7 @@
             particles[i].display();
         }
 
-        // 数据还没准备好就只画粒子
-        if (!dataReady || nushuData.length === 0) return;
+        if (!dataReady || nushuData.length === 0 || !fontReady) return;
 
         // 找最近字符
         let closestIndex = -1;
