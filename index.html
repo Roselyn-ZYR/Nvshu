@@ -51,7 +51,7 @@
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: centre;
             z-index: 2000;
             box-shadow: 0 15px 35px rgba(176, 58, 56, 0.05);
         }
@@ -147,7 +147,7 @@
 
         footer {
             padding: 60px 20px 40px;
-            text-align: center;
+            text-align: centre;
             font-size: 11px;
             color: #BBB;
             letter-spacing: 1px;
@@ -211,6 +211,7 @@
 
 <footer>
     Supported by <strong>Frauenförderfonds</strong> of Bauhaus-Universität Weimar<br>
+    Thanks to Xuyan, Tiantian
     Media Architecture Project
 </footer>
 
@@ -243,15 +244,19 @@
         // 【修改点 1】：流沙粒子暴增到 800 颗，创造极其宏大明显的流砂星河效果
         for(let i = 0; i < 800; i++){ particles.push(new Particle()); }
 
-        if (document.fonts) {
-            document.fonts.ready.then(function() {
-                let loading = document.getElementById('loading');
-                if(loading) {
-                    loading.style.opacity = '0';
-                    setTimeout(() => loading.remove(), 800);
-                }
-            });
-        }
+        function hideLoading() {
+    let loading = document.getElementById('loading');
+    if (loading && loading.style.opacity !== '0') {
+        loading.style.opacity = '0';
+        setTimeout(() => { if(loading.parentNode) loading.remove(); }, 800);
+    }
+}
+
+// 字体加载好就消失，最多等 2.5 秒强制消失
+if (document.fonts) {
+    document.fonts.ready.then(hideLoading);
+}
+setTimeout(hideLoading, 2500);
         
         // 搜索事件绑定
         let searchInput = document.getElementById('nushu-search');
@@ -381,7 +386,7 @@
         if (activeDrawParams) {
             push();
             // 【关键修复点】：最突出高亮的字也彻底拿掉了 shadowBlur 阴影，放大比率调高到 1.7 倍，利落干净！
-            drawingContext.font = `bold ${floor(cellSizeW * 1.7)}px NvshuSerif`;
+            drawingContext.font = `bold ${floor(cellSizeW * 1.5)}px NvshuSerif`;
             drawingContext.fillStyle = 'rgba(176, 58, 56, 1)'; // 不透明高饱和胭脂红
             drawingContext.textAlign = 'center';
             drawingContext.textBaseline = 'middle';
