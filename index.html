@@ -351,12 +351,13 @@
             bottom: 40px;
             transform: none;
             width: min(320px, calc(100vw - 32px));
-            background: rgba(250, 246, 242, 0.98);
-            backdrop-filter: blur(25px);
-            border: 1px solid var(--petal);
+            background: rgba(250, 246, 242, 0.68);
+            backdrop-filter: blur(10px) saturate(1.05);
+            -webkit-backdrop-filter: blur(10px) saturate(1.05);
+            border: 1px solid rgba(232, 211, 209, 0.55);
             padding: 28px;
             border-radius: 32px;
-            box-shadow: 0 40px 80px rgba(176, 58, 56, 0.12);
+            box-shadow: 0 24px 60px rgba(176, 58, 56, 0.08);
             z-index: 2001;
             max-height: min(58vh, 480px);
             overflow-y: auto;
@@ -374,11 +375,11 @@
             }
         }
 
-        #detail-char { font-family: 'NvshuSerif'; font-size: clamp(72px, 18vw, 110px); color: var(--rouge); text-align: center; line-height: 1.1; }
-        .detail-label { font-size: 10px; color: #AAA; letter-spacing: 2px; margin-top: 15px; text-transform: uppercase; border-bottom: 1px solid rgba(176,58,56,0.1); padding-bottom: 3px; }
-        .detail-value { font-size: 15px; color: var(--ink-main); margin: 5px 0; line-height: 1.4; }
-        #detail-meaning { font-size: 20px; font-weight: 500; color: var(--ink-main); }
-        #detail-pinyin { font-size: 16px; color: #B03A38; font-weight: bold; }
+        #detail-char { font-family: 'NvshuSerif'; font-size: clamp(72px, 18vw, 110px); color: var(--rouge); text-align: center; line-height: 1.1; text-shadow: 0 0 12px rgba(250, 246, 242, 0.85); }
+        .detail-label { font-size: 10px; color: #888; letter-spacing: 2px; margin-top: 15px; text-transform: uppercase; border-bottom: 1px solid rgba(176,58,56,0.12); padding-bottom: 3px; }
+        .detail-value { font-size: 15px; color: var(--ink-main); margin: 5px 0; line-height: 1.4; text-shadow: 0 1px 8px rgba(250, 246, 242, 0.9); }
+        #detail-meaning { font-size: 20px; font-weight: 500; color: var(--ink-main); text-shadow: 0 1px 8px rgba(250, 246, 242, 0.9); }
+        #detail-pinyin { font-size: 16px; color: #B03A38; font-weight: bold; text-shadow: 0 1px 8px rgba(250, 246, 242, 0.9); }
 
         #artist-box { margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--petal); }
         .artist-img { width: 100%; border-radius: 12px; filter: grayscale(1); transition: 0.5s; margin-top: 8px; }
