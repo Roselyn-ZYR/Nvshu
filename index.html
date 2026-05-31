@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>女书数字档案馆 | Nüshu Digital Archive</title>
+    <!-- 引入稳定版 p5.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
-        /* 🚨 优化点：去掉路径开头的 ./ 强制使用绝对相对路径，规避 GitHub Pages 的目录层级解析错误 */
+        /* 🚨 双保险：请务必核对你 GitHub 上 fonts 文件夹内字体的真实名字是 Nvshu 还是 Nyushu */
         @font-face {
             font-family: 'NvshuSerif';
-            src: url('fonts/NyushuSerif-1.000.ttf') format('truetype');
+            src: url('fonts/NyushuSerif-1.000.ttf') format('truetype')
             font-display: swap;
         }
 
@@ -33,7 +34,6 @@
 
         canvas {
             display: block;
-            font-family: 'NvshuSerif' !important;
             margin: 15vh auto 0 auto;
         }
 
@@ -59,7 +59,7 @@
         }
 
         .archive-brand {
-            font-family: 'NvshuSerif', serif;
+            font-family: serif;
             color: var(--rouge);
             font-size: 1.2rem;
             font-weight: bold;
@@ -109,7 +109,6 @@
         @keyframes slideIn { from { transform: translateX(-30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         #generated-sentence {
-            font-family: 'NvshuSerif' !important;
             font-size: 45px;
             color: var(--rouge);
             margin-top: 10px;
@@ -137,7 +136,7 @@
             overflow-y: auto;
         }
 
-        #detail-char { font-family: 'NvshuSerif'; font-size: 110px; color: var(--rouge); text-align: center; line-height: 1.1; }
+        #detail-char { font-size: 110px; color: var(--rouge); text-align: center; line-height: 1.1; }
         .detail-label { font-size: 10px; color: #AAA; letter-spacing: 2px; margin-top: 15px; text-transform: uppercase; border-bottom: 1px solid rgba(176,58,56,0.1); padding-bottom: 3px; }
         .detail-value { font-size: 15px; color: var(--ink-main); margin: 5px 0; line-height: 1.4; }
         #detail-meaning { font-size: 22px; font-weight: 500; color: var(--ink-main); }
@@ -160,7 +159,6 @@
 
         #p5-container { width: 100%; display: flex; justify-content: center; cursor: crosshair; }
         
-        /* Loading 遮罩动画：无论 JS 是否加载成功，1.5秒后强制淡出开屏 */
         #loading { 
             position: fixed; 
             top: 0; 
@@ -242,19 +240,19 @@
     let particles = [];
     let isTyping = false; 
 
-    // ⚡ 优化点：去掉路径开头的 ./，防止 GitHub Pages 以为要跨到根域下去抓数据
     function preload() {
+        // 直接请求当前根目录下的数据
         fetch('nushu_data.json')
             .then(response => {
-                if (!response.ok) throw new Error("HTTP error " + response.status);
+                if (!response.ok) throw new Error("HTTP " + response.status);
                 return response.json();
             })
             .then(data => {
                 nushuData = Array.isArray(data) ? data : Object.values(data);
-                console.log("✅ 数据加载成功，共计条数:", nushuData.length);
+                console.log("✅ JSON数据获取成功，共:", nushuData.length);
             })
             .catch(err => {
-                console.error("🚨 【路径错误提示】未能在当前项目目录下找到 nushu_data.json 文件。", err);
+                console.error("🚨 JSON文件读取失败！", err);
             });
     }
 
@@ -262,14 +260,10 @@
         let w = min(windowWidth * 0.95, 1200);
         let cnv = createCanvas(w, 1350); 
         cnv.parent('p5-container');
-        
-        textFont('NvshuSerif'); 
         textAlign(CENTER, CENTER);
 
-        // 初始化背景粒子
         for(let i = 0; i < 800; i++){ particles.push(new Particle()); }
         
-        // 搜索事件绑定
         let searchInput = document.getElementById('nushu-search');
         searchInput.addEventListener('compositionstart', () => { isTyping = true; });
         searchInput.addEventListener('compositionend', (e) => { 
@@ -280,7 +274,6 @@
             if (!isTyping) searchQuery = e.target.value.trim().toLowerCase();
         });
 
-        // 实时长句女书生成器
         let generatorInput = document.getElementById('nushu-generator');
         generatorInput.addEventListener('input', (e) => {
             let text = e.target.value.trim();
@@ -314,21 +307,15 @@
     function draw() {
         clear();
         
-        let padX = 40;
-        let padY = 80; 
-        let drawW = width - padX * 2;
-        let drawH = height - padY * 2;
-        
-        let cellSizeW = drawW / cols;
-        let cellSizeH = drawH / rows;
+        let padX = 40, padY = 80; 
+        let drawW = width - padX * 2, drawH = height - padY * 2;
+        let cellSizeW = drawW / cols, cellSizeH = drawH / rows;
 
-        // 渲染流沙
         for(let i = 0; i < particles.length; i++){
             particles[i].update();
             particles[i].display();
         }
 
-        // 安全锁：在异步 JSON 还没抓取到之前，不执行渲染逻辑，防止底层红字阻断代码
         if (!nushuData || nushuData.length === 0) return;
 
         let closestIndex = -1;
@@ -339,10 +326,7 @@
             let tx = padX + x * cellSizeW + cellSizeW / 2;
             let ty = padY + y * cellSizeH + cellSizeH / 2;
             let d = dist(mouseX, mouseY, tx, ty);
-            if (d < minDistance) {
-                minDistance = d;
-                closestIndex = i;
-            }
+            if (d < minDistance) { minDistance = d; closestIndex = i; }
         }
         
         let activeDrawParams = null;
@@ -351,9 +335,7 @@
             let entry = nushuData[i];
             if (!entry || !entry.char) continue;
 
-            let x = i % cols;
-            let y = floor(i / cols);
-            
+            let x = i % cols, y = floor(i / cols);
             let tx = padX + x * cellSizeW + cellSizeW / 2;
             let ty = padY + y * cellSizeH + cellSizeH / 2;
             let d = dist(mouseX, mouseY, tx, ty);
@@ -361,15 +343,7 @@
             let isSearchMatch = false;
             if (!isTyping && searchQuery.length > 0) {
                 let cnMatch = entry.meaning_cn && entry.meaning_cn.includes(searchQuery);
-                let pyMatch = entry.pinyin && entry.pinyin.toLowerCase() === searchQuery;
-                let enMatch = entry.meaning_en && entry.meaning_en.toLowerCase().split(' / ').includes(searchQuery);
-                let deMatch = entry.meaning_de && entry.meaning_de.toLowerCase().split(' / ').includes(searchQuery);
-                
-                if (!pyMatch && entry.pinyin) pyMatch = searchQuery.length > 1 && entry.pinyin.toLowerCase().includes(searchQuery);
-                if (!enMatch && entry.meaning_en) enMatch = searchQuery.length > 2 && entry.meaning_en.toLowerCase().includes(searchQuery);
-                if (!deMatch && entry.meaning_de) deMatch = searchQuery.length > 2 && entry.meaning_de.toLowerCase().includes(searchQuery);
-
-                if (cnMatch || pyMatch || enMatch || deMatch) isSearchMatch = true;
+                if (cnMatch) isSearchMatch = true;
             }
 
             let n = noise(x * 0.1, y * 0.1, frameCount * 0.005);
@@ -381,7 +355,9 @@
 
             push(); 
             let currentSize = isSearchMatch ? cellSizeW * 1.35 : (d < 350 && mouseX > 0 && mouseY > 0 ? cellSizeW * 0.9 : cellSizeW * 0.72);
-            drawingContext.font = `${floor(currentSize)}px NvshuSerif`;
+            
+            // ⚡ 终极保险核心：即使线上 NvshuSerif 字体加载丢包，也强制 fallback 到 serif，确保能看见字！
+            drawingContext.font = `${floor(currentSize)}px 'NvshuSerif', serif`;
             drawingContext.fillStyle = isSearchMatch ? 'rgba(176, 58, 56, 1)' : (d < 350 && mouseX > 0 && mouseY > 0 ? `rgba(176, 58, 56, ${map(d, 0, 350, 0.9, 0.2)})` : 'rgba(176, 58, 56, 0.15)');
             drawingContext.textAlign = 'center';
             drawingContext.textBaseline = 'middle';
@@ -396,7 +372,7 @@
 
         if (activeDrawParams) {
             push();
-            drawingContext.font = `bold ${floor(cellSizeW * 1.7)}px NvshuSerif`;
+            drawingContext.font = `bold ${floor(cellSizeW * 1.7)}px 'NvshuSerif', serif`;
             drawingContext.fillStyle = 'rgba(176, 58, 56, 1)'; 
             drawingContext.textAlign = 'center';
             drawingContext.textBaseline = 'middle';
@@ -407,7 +383,6 @@
 
     function mousePressed() {
         if (!nushuData || nushuData.length === 0) return;
-
         let padX = 40, padY = 80;
         let drawW = width - padX * 2, drawH = height - padY * 2;
         let cellSizeW = drawW / cols, cellSizeH = drawH / rows;
@@ -416,7 +391,6 @@
             let x = i % cols, y = floor(i / cols);
             let tx = padX + x * cellSizeW + cellSizeW / 2;
             let ty = padY + y * cellSizeH + cellSizeH / 2;
-            
             if (dist(mouseX, mouseY, tx, ty) < cellSizeW / 1.2) {
                 showDetail(nushuData[i]);
                 break;
@@ -442,13 +416,10 @@
         } else {
             artistBox.style.display = 'none';
         }
-        
         document.getElementById('detail-panel').style.display = 'block';
     }
 
-    function windowResized() {
-        resizeCanvas(min(windowWidth * 0.95, 1200), 1350);
-    }
+    function windowResized() { resizeCanvas(min(windowWidth * 0.95, 1200), 1350); }
 
     class Particle {
         constructor() {
@@ -459,27 +430,20 @@
             this.size = random(0.6, 3.2); 
             this.alpha = random(50, 160);
         }
-
         update() {
             let n = noise(this.x * 0.004, this.y * 0.004, frameCount * 0.003);
             let angle = n * TWO_PI * 2.5; 
-            
             let d = dist(mouseX, mouseY, this.x, this.y);
             if(d < 180 && mouseX > 0 && mouseY > 0) {
                 let force = map(d, 0, 180, 0.8, 0);
                 this.x -= (mouseX - this.x) * force * 0.015;
                 this.y -= (mouseY - this.y) * force * 0.015;
             }
-
             this.x += cos(angle) * 0.7 + this.vx;
             this.y += sin(angle) * 0.7 + this.vy;
-
-            if (this.x < 0) this.x = width;
-            if (this.x > width) this.x = 0;
-            if (this.y < 0) this.y = height;
-            if (this.y > height) this.y = 0;
+            if (this.x < 0) this.x = width; if (this.x > width) this.x = 0;
+            if (this.y < 0) this.y = height; if (this.y > height) this.y = 0;
         }
-
         display() {
             noStroke();
             fill(209, 191, 174, this.alpha);
