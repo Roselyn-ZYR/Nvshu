@@ -25,17 +25,15 @@
             margin: 0;
             font-family: 'PingFang SC', 'Helvetica Neue', sans-serif;
             overflow-x: hidden;
-            /* 基础肌理 */
             background-image: radial-gradient(circle at 50% 20%, rgba(176, 58, 56, 0.02) 0%, transparent 70%),
                               url('data:image/svg+xml;utf8,<svg width="4" height="4" viewBox="0 0 4 4" xmlns="http://www.w3.org/2000/svg"><rect width="4" height="4" fill="none"/><circle cx="2" cy="2" r="0.5" fill="%23D1BFAe" opacity="0.1"/></svg>');
         }
 
         canvas {
             font-family: 'NvshuSerif' !important;
-            margin-top: 15vh; /* 为悬浮控制栏留出顶部空间 */
+            margin-top: 15vh;
         }
 
-        /* 👑 极简悬浮控制面板 (Fixed Floating Glassmorphism) */
         .floating-bar {
             position: fixed;
             top: 20px;
@@ -51,7 +49,7 @@
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
-            align-items: centre;
+            align-items: center;
             z-index: 2000;
             box-shadow: 0 15px 35px rgba(176, 58, 56, 0.05);
         }
@@ -89,7 +87,6 @@
             background: rgba(255,255,255,0.9);
         }
 
-        /* 📜 女书句子生成展示卷轴 */
         #sentence-canvas-box {
             position: fixed;
             bottom: 40px;
@@ -116,7 +113,6 @@
             overflow-x: auto;
         }
 
-        /* 详情面板保持右侧悬浮 */
         #detail-panel {
             display: none;
             position: fixed;
@@ -147,7 +143,7 @@
 
         footer {
             padding: 60px 20px 40px;
-            text-align: centre;
+            text-align: center;
             font-size: 11px;
             color: #BBB;
             letter-spacing: 1px;
@@ -157,7 +153,18 @@
         }
 
         #p5-container { width: 100%; display: flex; justify-content: center; cursor: crosshair; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-paper); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.8s; }
+
+        #loading {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--bg-paper);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s;
+        }
     </style>
 </head>
 <body>
@@ -169,8 +176,8 @@
 <div class="floating-bar">
     <a href="#" class="archive-brand">NÜSHU ARCHIVE</a>
     <div class="interactive-inputs">
-        <input type="text" id="nushu-search" class="minimal-input" placeholder="检索Search (汉字Chinese/拼音PinYin/英English/德German)...">
-        <input type="text" id="nushu-generator" class="minimal-input" placeholder="输入一句话直接生成女书Searching Nüshu from your language...">
+        <input type="text" id="nushu-search" class="minimal-input" placeholder="检索 (汉字/拼音/英德)...">
+        <input type="text" id="nushu-generator" class="minimal-input" placeholder="输入一句话直接生成女书...">
     </div>
 </div>
 
@@ -211,27 +218,43 @@
 
 <footer>
     Supported by <strong>Frauenförderfonds</strong> of Bauhaus-Universität Weimar<br>
-    Thanks to Xuyan, Tiantian
     Media Architecture Project
 </footer>
 
 <script>
+    // ✅ 修复：独立的 loading 隐藏函数，带超时兜底
+    function hideLoading() {
+        let loading = document.getElementById('loading');
+        if (loading && loading.style.opacity !== '0') {
+            loading.style.opacity = '0';
+            setTimeout(() => { if (loading.parentNode) loading.remove(); }, 800);
+        }
+    }
+
+    // 字体加载完成就消失；最多等 2.5 秒强制消失（兜底）
+    if (document.fonts) {
+        document.fonts.ready.then(hideLoading);
+    }
+    setTimeout(hideLoading, 2500);
+
     let nushuData = []; 
     let cols = 24, rows = 17; 
     let searchQuery = "";
     let particles = [];
     let isTyping = false; 
 
-  function preload() {
-    loadJSON('nushu_data.json', 
-        (data) => { 
-            nushuData = Array.isArray(data) ? data : Object.values(data); 
-        },
-        (err) => {
-            console.error('JSON加载失败:', err);  // 这样F12就能看到报错了
-        }
-    );
-}
+    function preload() {
+        loadJSON('nushu_data.json',
+            (data) => { 
+                nushuData = Array.isArray(data) ? data : Object.values(data); 
+            },
+            (err) => {
+                console.error('JSON 加载失败:', err);
+                // 即使 JSON 失败也要让 loading 消失
+                hideLoading();
+            }
+        );
+    }
 
     function setup() {
         let w = min(windowWidth * 0.95, 1200);
@@ -241,22 +264,7 @@
         textFont('NvshuSerif'); 
         textAlign(CENTER, CENTER);
 
-        // 【修改点 1】：流沙粒子暴增到 800 颗，创造极其宏大明显的流砂星河效果
         for(let i = 0; i < 800; i++){ particles.push(new Particle()); }
-
-        function hideLoading() {
-    let loading = document.getElementById('loading');
-    if (loading && loading.style.opacity !== '0') {
-        loading.style.opacity = '0';
-        setTimeout(() => { if(loading.parentNode) loading.remove(); }, 800);
-    }
-}
-
-// 字体加载好就消失，最多等 2.5 秒强制消失
-if (document.fonts) {
-    document.fonts.ready.then(hideLoading);
-}
-setTimeout(hideLoading, 2500);
         
         // 搜索事件绑定
         let searchInput = document.getElementById('nushu-search');
@@ -269,7 +277,7 @@ setTimeout(hideLoading, 2500);
             if (!isTyping) searchQuery = e.target.value.trim().toLowerCase();
         });
 
-        // 👑 【新增核心功能】：输入一句话实时生成女书长句
+        // 句子生成器
         let generatorInput = document.getElementById('nushu-generator');
         generatorInput.addEventListener('input', (e) => {
             let text = e.target.value.trim();
@@ -283,19 +291,18 @@ setTimeout(hideLoading, 2500);
             }
             
             let resultChars = "";
-            // 遍历输入的每一个汉字，去我们的精细数据库中查找匹配的女书字形
             for (let targetChar of text) {
                 let found = nushuData.find(item => item.meaning_cn && item.meaning_cn.includes(targetChar));
                 if (found) {
                     resultChars += found.char;
                 } else {
-                    resultChars += " ﹒ "; // 未收录的字用古典圆点代替维持版面美感
+                    resultChars += " ﹒ ";
                 }
             }
             
             if(resultChars.length > 0) {
                 charDisplay.innerText = resultChars;
-                transDisplay.innerText = `“ ${text} ”`;
+                transDisplay.innerText = `" ${text} "`;
                 box.style.display = 'block';
             }
         });
@@ -312,7 +319,6 @@ setTimeout(hideLoading, 2500);
         let cellSizeW = drawW / cols;
         let cellSizeH = drawH / rows;
 
-        // 渲染海量流沙粒子
         for(let i = 0; i < particles.length; i++){
             particles[i].update();
             particles[i].display();
@@ -367,7 +373,6 @@ setTimeout(hideLoading, 2500);
             }
 
             push(); 
-            // 【关键修复点】：彻底清除所有 shadowBlur 光晕代码！让字体呈现最纯正、利落的矢量边缘
             let currentSize = isSearchMatch ? cellSizeW * 1.35 : (d < 350 && mouseX > 0 && mouseY > 0 ? cellSizeW * 0.9 : cellSizeW * 0.72);
             drawingContext.font = `${floor(currentSize)}px NvshuSerif`;
             drawingContext.fillStyle = isSearchMatch ? 'rgba(176, 58, 56, 1)' : (d < 350 && mouseX > 0 && mouseY > 0 ? `rgba(176, 58, 56, ${map(d, 0, 350, 0.9, 0.2)})` : 'rgba(176, 58, 56, 0.15)');
@@ -382,15 +387,12 @@ setTimeout(hideLoading, 2500);
             pop(); 
         }
 
-        // 第二阶段：顶层焦点字渲染（利落纯净版）
         if (activeDrawParams) {
             push();
-            // 【关键修复点】：最突出高亮的字也彻底拿掉了 shadowBlur 阴影，放大比率调高到 1.7 倍，利落干净！
-            drawingContext.font = `bold ${floor(cellSizeW * 1.5)}px NvshuSerif`;
-            drawingContext.fillStyle = 'rgba(176, 58, 56, 1)'; // 不透明高饱和胭脂红
+            drawingContext.font = `bold ${floor(cellSizeW * 1.7)}px NvshuSerif`;
+            drawingContext.fillStyle = 'rgba(176, 58, 56, 1)';
             drawingContext.textAlign = 'center';
             drawingContext.textBaseline = 'middle';
-            
             drawingContext.fillText(activeDrawParams.entry.char, activeDrawParams.tx, activeDrawParams.ty);
             pop();
         }
@@ -419,10 +421,8 @@ setTimeout(hideLoading, 2500);
         document.getElementById('detail-char').innerText = entry.char;
         document.getElementById('detail-pinyin').innerText = entry.pinyin ? `[ ${entry.pinyin} ]` : "暂无音标";
         document.getElementById('detail-meaning').innerText = entry.meaning_cn ? entry.meaning_cn : "待整理";
-        
         document.getElementById('detail-english').innerText = entry.meaning_en ? entry.meaning_en : "None";
         document.getElementById('detail-deutsch').innerText = entry.meaning_de ? entry.meaning_de : "Keine";
-        
         document.getElementById('detail-desc').innerText = entry.description ? entry.description : "Digital Archive processing.";
         
         let artistBox = document.getElementById('artist-box');
@@ -442,23 +442,21 @@ setTimeout(hideLoading, 2500);
         resizeCanvas(min(windowWidth * 0.95, 1200), 1350);
     }
 
-    // 🌊 升级流沙粒子类
     class Particle {
         constructor() {
             this.x = random(width);
             this.y = random(height);
             this.vx = random(-0.3, 0.3);
-            this.vy = random(-0.6, 0.1); // 沙子向下缓流的速度调大
-            this.size = random(0.6, 3.2); // 沙子颗粒层次更明显
+            this.vy = random(-0.6, 0.1);
+            this.size = random(0.6, 3.2);
             this.alpha = random(50, 160);
         }
 
         update() {
             let n = noise(this.x * 0.004, this.y * 0.004, frameCount * 0.003);
-            let angle = n * TWO_PI * 2.5; // 正弦噪声幅增大
+            let angle = n * TWO_PI * 2.5;
             
             let d = dist(mouseX, mouseY, this.x, this.y);
-            // 鼠标避让磁吸风暴范围扩大
             if(d < 180 && mouseX > 0 && mouseY > 0) {
                 let force = map(d, 0, 180, 0.8, 0);
                 this.x -= (mouseX - this.x) * force * 0.015;
