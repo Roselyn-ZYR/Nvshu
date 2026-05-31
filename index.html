@@ -203,10 +203,23 @@
         }
 
         @media (max-width: 768px) {
-            canvas { margin-top: clamp(148px, 22vh, 190px); }
-            .floating-bar { border-radius: 20px; padding: 12px 14px; }
-            .bar-top { margin-bottom: 10px; }
-            .mode-tab { padding: 7px 11px; font-size: 11px; }
+            canvas { margin-top: clamp(128px, 19vh, 156px); }
+            .floating-bar { border-radius: 18px; padding: 10px 12px; width: min(96%, 1000px); }
+            .bar-top {
+                margin-bottom: 8px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .archive-brand { font-size: 0.82rem; letter-spacing: 1px; }
+            .mode-tabs { flex: 1; justify-content: flex-end; }
+            .mode-tab { padding: 6px 10px; font-size: 10px; }
+            .minimal-input { padding: 10px 14px; font-size: 15px; }
+            .mode-hint { font-size: 10px; margin-top: 6px; }
+            #generated-sentence {
+                font-size: clamp(22px, 5.5vw, 32px);
+                letter-spacing: 2px;
+            }
+            #detail-char { font-size: clamp(52px, 13vw, 76px); }
             #detail-panel {
                 top: auto;
                 bottom: max(12px, env(safe-area-inset-bottom));
@@ -214,9 +227,15 @@
                 left: 12px;
                 right: 12px;
                 width: auto;
-                max-height: 62vh;
+                max-height: 58vh;
+                padding: 20px;
             }
-            #sentence-canvas-box { left: 12px; right: 12px; max-width: none; }
+            #sentence-canvas-box {
+                left: 12px;
+                right: 12px;
+                max-width: none;
+                padding: 12px 16px;
+            }
         }
     </style>
 </head>
@@ -276,6 +295,7 @@
 
 <script>
     let nushuData = [];
+    let wordIndex = {};
     let dataReady = false;
     let fontReady = false;
     let gridCols = 24;
@@ -337,6 +357,7 @@
         .then(data => {
             nushuData = Array.isArray(data) ? data : Object.values(data);
             dataReady = nushuData.length > 0;
+            buildWordIndex();
             updateLayoutMetrics();
             if (!dataReady) setLoadingText('数据为空，请检查 nushu_data.json');
             tryHideLoading();
@@ -348,62 +369,95 @@
         });
 
     function updateLayoutMetrics() {
-        if (windowWidth < 480) gridCols = 8;
-        else if (windowWidth < 768) gridCols = 12;
-        else if (windowWidth < 1024) gridCols = 18;
+        if (windowWidth < 480) gridCols = 16;
+        else if (windowWidth < 768) gridCols = 18;
+        else if (windowWidth < 1024) gridCols = 20;
         else gridCols = 24;
 
         gridRows = Math.max(1, Math.ceil((nushuData.length || 396) / gridCols));
-        layoutPadX = windowWidth < 768 ? 10 : 40;
-        layoutPadY = windowWidth < 768 ? 36 : 80;
+        layoutPadX = windowWidth < 768 ? 8 : 40;
+        layoutPadY = windowWidth < 768 ? 28 : 80;
     }
 
     function canvasSize() {
         let w = Math.min(windowWidth * 0.98, 1200);
         let cellW = (w - layoutPadX * 2) / gridCols;
-        let h = layoutPadY * 2 + gridRows * cellW * 1.08;
-        if (windowWidth < 768) h = Math.max(h, windowHeight * 0.62);
-        else h = Math.max(h, 1350);
+        let h = layoutPadY * 2 + gridRows * cellW * 1.02;
+        if (windowWidth >= 768) h = Math.max(h, 1350);
         return { w, h, cellW };
     }
 
     function splitTerms(field) {
         if (!field) return [];
-        return field.toLowerCase().split(/\s*\/\s*/).map(s => s.trim()).filter(Boolean);
+        return field.toLowerCase()
+            .split(/\s*\/\s*/)
+            .flatMap(part => part.trim().split(/[\s,;]+/))
+            .map(s => s.trim())
+            .filter(Boolean);
+    }
+
+    function normalizeWord(word) {
+        return word.toLowerCase()
+            .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+    }
+
+    function wordVariants(word) {
+        let w = normalizeWord(word);
+        let variants = new Set([w]);
+        if (w.endsWith('ies') && w.length > 4) variants.add(w.slice(0, -3) + 'y');
+        if (w.endsWith('ves') && w.length > 4) variants.add(w.slice(0, -3) + 'f');
+        if (w.endsWith('es') && w.length > 3) variants.add(w.slice(0, -2));
+        if (w.endsWith('s') && w.length > 3) variants.add(w.slice(0, -1));
+        if (w.endsWith('ed') && w.length > 4) variants.add(w.slice(0, -2));
+        if (w.endsWith('ing') && w.length > 5) variants.add(w.slice(0, -3));
+        if (w.endsWith('er') && w.length > 4) variants.add(w.slice(0, -2));
+        return [...variants];
+    }
+
+    function registerWord(word, item) {
+        let key = normalizeWord(word);
+        if (key.length < 2) return;
+        if (!wordIndex[key]) {
+            wordIndex[key] = item;
+            return;
+        }
+        let cur = splitTerms(wordIndex[key].meaning_en + ' / ' + wordIndex[key].meaning_de);
+        let incoming = splitTerms(item.meaning_en + ' / ' + item.meaning_de);
+        if (incoming.some(t => t === key) && !cur.some(t => t === key)) {
+            wordIndex[key] = item;
+        }
+    }
+
+    function buildWordIndex() {
+        wordIndex = {};
+        for (const item of nushuData) {
+            for (const term of [...splitTerms(item.meaning_en), ...splitTerms(item.meaning_de)]) {
+                registerWord(term, item);
+                for (const part of term.split(/[\s-]+/)) registerWord(part, item);
+            }
+        }
     }
 
     function entryMatchesSearch(entry, query) {
         if (!query) return false;
         let cnMatch = entry.meaning_cn && entry.meaning_cn.includes(query);
         let pyMatch = entry.pinyin && entry.pinyin.toLowerCase().includes(query);
-        let enMatch = splitTerms(entry.meaning_en).some(t => t.includes(query) || query.includes(t));
-        let deMatch = splitTerms(entry.meaning_de).some(t => t.includes(query) || query.includes(t));
+        let enMatch = splitTerms(entry.meaning_en).some(t => t === query || t.includes(query));
+        let deMatch = splitTerms(entry.meaning_de).some(t => t === query || t.includes(query));
         return cnMatch || pyMatch || enMatch || deMatch;
     }
 
     function findEntryForToken(token) {
         if (!token) return null;
         let raw = token.trim();
-        let lower = raw.toLowerCase();
-
         if (/[\u4e00-\u9fff]/.test(raw)) {
             return nushuData.find(item => item.meaning_cn && item.meaning_cn.includes(raw)) || null;
         }
 
-        let best = null;
-        let bestScore = 0;
-        for (const item of nushuData) {
-            const enTerms = splitTerms(item.meaning_en);
-            const deTerms = splitTerms(item.meaning_de);
-            for (const term of [...enTerms, ...deTerms]) {
-                if (term === lower) return item;
-                if (term.startsWith(lower) || lower.startsWith(term)) {
-                    let score = term.length;
-                    if (score > bestScore) { bestScore = score; best = item; }
-                }
-            }
+        for (const variant of wordVariants(raw)) {
+            if (wordIndex[variant]) return wordIndex[variant];
         }
-        return best;
+        return null;
     }
 
     function tokenizeForGenerate(text) {
@@ -515,10 +569,11 @@
         let cellSizeW = drawW / gridCols;
         let cellSizeH = drawH / gridRows;
         let isMobile = windowWidth < 768;
-        let baseScale = isMobile ? 0.88 : 0.72;
-        let hoverScale = isMobile ? 1.05 : 0.9;
-        let focusScale = isMobile ? 1.55 : 1.7;
-        let minAlpha = isMobile ? 0.28 : 0.15;
+        let baseScale = isMobile ? 0.62 : 0.72;
+        let hoverScale = isMobile ? 0.72 : 0.9;
+        let minAlpha = isMobile ? 0.22 : 0.15;
+        let pointerActive = mouseX > 0 && mouseY > 0;
+        let focusMultiplier = 1.5;
 
         for (let i = 0; i < particles.length; i++) {
             particles[i].update();
@@ -550,19 +605,19 @@
             let isSearchMatch = searchActive && entryMatchesSearch(entry, searchQuery);
             let n = noise(x * 0.1, y * 0.1, frameCount * 0.005);
 
-            if (i === closestIndex && minDistance < cellSizeW * 1.5 && mouseX > 0 && mouseY > 0) {
+            if (i === closestIndex && minDistance < cellSizeW * 1.5 && pointerActive) {
                 activeDrawParams = { entry, tx, ty, isSearchMatch };
                 continue;
             }
 
             push();
             let currentSize = isSearchMatch
-                ? cellSizeW * 1.35
-                : (d < 350 && mouseX > 0 && mouseY > 0 ? cellSizeW * hoverScale : cellSizeW * baseScale);
+                ? cellSizeW * baseScale * 1.25
+                : (d < 350 && pointerActive ? cellSizeW * hoverScale : cellSizeW * baseScale);
             drawingContext.font = `${Math.floor(currentSize)}px NvshuSerif`;
             drawingContext.fillStyle = isSearchMatch
                 ? 'rgba(176, 58, 56, 1)'
-                : (d < 350 && mouseX > 0 && mouseY > 0
+                : (d < 350 && pointerActive
                     ? `rgba(176, 58, 56, ${map(d, 0, 350, 0.9, minAlpha + 0.1)})`
                     : `rgba(176, 58, 56, ${minAlpha})`);
             drawingContext.textAlign = 'center';
@@ -577,7 +632,8 @@
 
         if (activeDrawParams) {
             push();
-            drawingContext.font = `bold ${Math.floor(cellSizeW * focusScale)}px NvshuSerif`;
+            let focusSize = Math.floor(cellSizeW * baseScale * focusMultiplier);
+            drawingContext.font = `bold ${focusSize}px NvshuSerif`;
             drawingContext.fillStyle = 'rgba(176, 58, 56, 1)';
             drawingContext.textAlign = 'center';
             drawingContext.textBaseline = 'middle';
